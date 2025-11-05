@@ -4,38 +4,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* 🌈 Custom theme variables */
-:root {
-  --bg-color: #fff;
-  --text-color: #111;
-  --border-color: #ccc;
-  --hover-bg: #f2f2f2;
-}
+@import "tailwindcss/preflight.css" layer(custom-base);
 
-@media (prefers-color-scheme: dark) {
+/* Custom theme variables */
+@layer custom-base {
   :root {
-    --bg-color: #111;
-    --text-color: #eee;
-    --border-color: #444;
-    --hover-bg: #222;
+    --bg-color: #ffffff;
+    --text-color: #111111;
   }
-}
 
-a {
-  color: var(--text-color);
-  text-decoration-line: none;
-  transition: color 0.2s ease;
-}
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-color: #111111;
+      --text-color: #ffffff;
+    }
+  }
 
-a:hover {
-  opacity: calc(50%);
-  text-decoration: none;
-}
+  body {
+    font-family: theme("fontFamily.mono");
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
 
-/* 🌙 Combine Tailwind utilities with CSS vars */
-body {
-  font-family: theme("fontFamily.mono"); /* resolves font-mono properly */
-  color: var(--text-color);
-  background-color: var(--bg-color);
-  @apply text-gray-900 dark:text-gray-100 transition-colors duration-300;
+  p,
+  a,
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: theme("fontFamily.mono");
+    @apply not-italic no-underline;
+  }
 }

@@ -1,4 +1,5 @@
-import { navigateTo, useAuthCookie, useNuxtApp } from "#imports";
+import { useAuthCookie } from "#imports";
+import { navigateTo, useNuxtApp } from "nuxt/app";
 import { defineStore } from "pinia";
 import type { components } from "~/types/api";
 

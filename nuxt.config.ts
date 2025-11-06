@@ -33,6 +33,7 @@ export default defineNuxtConfig({
     exposeConfig: true,
     viewer: true,
   },
+  pages: true,
   imports: {
     autoImport: false,
   },

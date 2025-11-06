@@ -1,4 +1,5 @@
-import { defineNuxtRouteMiddleware, navigateTo, useAuthStore } from "#imports";
+import { useAuthStore } from "#imports";
+import { defineNuxtRouteMiddleware, navigateTo } from "nuxt/app";
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore();
@@ -11,6 +12,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
     "/forgot-password",
     "/reset-password",
     "/verify",
+    "/",
   ];
   const isPublic = publicRoutes.some((route) => to.path.startsWith(route));
   const hasCookie = auth.hasCookie();

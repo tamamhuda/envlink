@@ -73,7 +73,7 @@ import { reactive } from "vue";
 import type { components } from "~/types/api";
 
 definePageMeta({
-  layout: "empty",
+  layout: "auth",
 });
 
 const authStore = useAuthStore();

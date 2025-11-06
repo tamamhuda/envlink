@@ -2,7 +2,8 @@
   <div
     class="w-full flex items-center justify-center min-h-full bg-[var(--bg-color)] transition-colors duration-300"
   >
-    <div v-if="user && !isVerified">
+    <div v-if="!isClientOnly"><Loading /></div>
+    <div v-else-if="user && !isVerified">
       <div class="sm:mx-auto sm:w-full sm:max-w-md not-italic">
         <h2 class="mt-6 text-center text-3xl font-bold tracking-tight">
           Registration Successful
@@ -36,29 +37,32 @@
         </div>
       </div>
     </div>
-
-    <div v-else><Loading /></div>
+    <div v-else></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { navigateTo } from "#app";
-import { definePageMeta, useAuthStore } from "#imports";
+import { definePageMeta, ref, useAuthStore } from "#imports";
 import { computed, onMounted } from "vue";
 
 definePageMeta({
-  layout: "empty",
+  layout: "auth",
 });
 
 const auth = useAuthStore();
 const isVerified =
   computed(() => auth.user?.providers.is_verified).value || false;
-const user = computed(() => auth.user);
+const user = auth.user;
+const isClientOnly = ref(false);
 
 onMounted(async () => {
-  await auth.fetchUser();
-  if (isVerified) {
-    navigateTo("/dashboard");
+  if (import.meta.client) {
+    await auth.fetchUser();
+    isClientOnly.value = true;
+    if (isVerified) {
+      navigateTo("/dashboard");
+    }
   }
 });
 </script>

@@ -1,4 +1,4 @@
-import { defineNuxtPlugin, useRuntimeConfig, navigateTo } from "#app";
+import { defineNuxtPlugin, navigateTo, useRuntimeConfig } from "#app";
 import { useAuthCookie, useAuthStore } from "#imports";
 import { ofetch, type FetchOptions } from "ofetch";
 

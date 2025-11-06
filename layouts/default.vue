@@ -178,7 +178,7 @@
     <main
       class="text-center p-6 sm:p-12 max-w-[900px] min-h-full flex mx-auto flex-1 w-full"
     >
-      <slot />
+      <NuxtPage />
     </main>
 
     <!-- Footer -->
@@ -191,8 +191,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from "vue";
-import { useAuthStore } from "~/composables/useAuth";
+import { computed, onMounted, onUnmounted, ref, useAuthStore } from "#imports";
+
 const isClientOnly = ref(false);
 
 const { user, logout } = useAuthStore();

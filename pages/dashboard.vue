@@ -34,11 +34,15 @@
 </template>
 
 <script setup lang="ts">
+import { definePageMeta, useAuthStore } from "#imports";
 import { ref, onMounted } from "vue";
-import { useAuthStore } from "#imports";
 
 const { user } = useAuthStore();
 const isClientOnly = ref(false);
+
+definePageMeta({
+  layout: "dashboard",
+});
 
 onMounted(async () => {
   if (import.meta.client) {

@@ -10,43 +10,82 @@
         <h3 class="text-lg font-medium leading-6">Update Profile</h3>
 
         <form class="mt-6 space-y-6" @submit.prevent="updateProfile">
+          <div
+            v-if="errorMessage"
+            class="rounded-md bg-red-50 p-4 border border-red-200"
+          >
+            <p class="text-sm font-medium text-center text-red-800">
+              {{ errorMessage }}
+            </p>
+          </div>
+          <div
+            v-if="successMessage"
+            class="rounded-md bg-green-50 p-4 border border-green-200"
+          >
+            <p class="text-sm font-medium text-center text-green-800">
+              {{ successMessage }}
+            </p>
+          </div>
           <FormInput
             id="full_name"
+            v-model="userForm.full_name"
             label="Full Name"
             type="text"
-            :model-value="userForm.full_name ?? ''"
             required
           />
 
           <FormInput
             id="username"
+            v-model="userForm.username"
             label="Username"
             type="text"
-            :model-value="userForm.username ?? ''"
             required
           />
 
           <FormInput
             id="email"
+            v-model="userForm.email"
             label="Email address"
             type="email"
-            :model-value="userForm.email ?? ''"
             required
           />
 
           <FormInput
             id="phone_number"
+            v-model="userForm.phone_number"
             label="Phone Number"
             type="text"
-            :model-value="userForm.phone_number ?? ''"
           />
 
           <div>
             <button
               type="submit"
-              class="flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              :disabled="isLoading"
+              class="inline-flex justify-center items-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              :class="{ 'opacity-50 cursor-not-allowed': isLoading }"
             >
-              Update Profile
+              <svg
+                v-if="isLoading"
+                class="animate-spin -ml-1 mr-3 h-5 w-5"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
+              {{ isLoading ? "Updating..." : "Update Profile" }}
             </button>
           </div>
         </form>
@@ -78,6 +117,9 @@ const userForm = reactive<components["schemas"]["UpdateUserBodyDto"]>({
 
 const ready = ref(false);
 const user = ref(authStore.user);
+const isLoading = ref(false);
+const errorMessage = ref("");
+const successMessage = ref("");
 
 // SSR + Client-safe user loading
 if (import.meta.server) {
@@ -118,6 +160,10 @@ watch(
 const updateProfile = async () => {
   if (!authStore.user?.id) return;
 
+  isLoading.value = true;
+  errorMessage.value = "";
+  successMessage.value = "";
+
   try {
     const response = await api<components["schemas"]["UserInfoResponse"]>(
       `/api/v1/user/update/${authStore.user.id}`,
@@ -126,12 +172,20 @@ const updateProfile = async () => {
         body: userForm,
       },
     );
-    if (response.data) {
-      authStore.setUser(response.data);
-      // Optional: success toast or feedback
+    if (response) {
+      authStore.setUser(response);
+      successMessage.value = "Profile updated successfully!";
     }
-  } catch (error) {
-    console.error("Profile update failed:", error);
+  } catch (error: any) {
+    if (error.data && error.data.message) {
+      errorMessage.value = Array.isArray(error.data.message)
+        ? error.data.message.join(", ")
+        : error.data.message;
+    } else {
+      errorMessage.value = "An unexpected error occurred.";
+    }
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>

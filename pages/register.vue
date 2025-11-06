@@ -35,6 +35,14 @@
           class="py-8 px-4 border border-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)] sm:rounded-lg sm:px-10 bg-[var(--bg-color)] transition-colors"
         >
           <form class="space-y-6" @submit.prevent="handleRegister">
+            <div
+              v-if="errorMessage"
+              class="rounded-md bg-red-50 p-4 border border-red-200"
+            >
+              <p class="text-sm font-medium text-center text-red-800">
+                {{ errorMessage }}
+              </p>
+            </div>
             <FormInput
               id="full_name"
               v-model="registrationForm.full_name"
@@ -78,9 +86,36 @@
             <div>
               <button
                 type="submit"
-                class="inline-block w-full rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all bg-transparent text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--text-color)]"
+                :disabled="isLoading"
+                class="inline-flex w-full justify-center items-center rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] transition-all bg-transparent text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--text-color)]"
+                :class="{
+                  'opacity-50 cursor-not-allowed': isLoading,
+                  'hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)]':
+                    !isLoading,
+                }"
               >
-                Register
+                <svg
+                  v-if="isLoading"
+                  class="animate-spin -ml-1 mr-3 h-5 w-5"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    class="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    stroke-width="4"
+                  />
+                  <path
+                    class="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  />
+                </svg>
+                {{ isLoading ? "Registering..." : "Register" }}
               </button>
             </div>
           </form>
@@ -116,12 +151,16 @@
 
 <script setup lang="ts">
 import { definePageMeta, useAuthStore } from "#imports";
-import { reactive } from "vue";
+import { reactive, ref } from "vue";
 import type { components } from "~/types/api";
 
 definePageMeta({
   layout: "auth",
 });
+
+const authStore = useAuthStore();
+const isLoading = ref(false);
+const errorMessage = ref("");
 
 const registrationForm = reactive<components["schemas"]["RegisterBodyDto"]>({
   full_name: "",
@@ -132,11 +171,20 @@ const registrationForm = reactive<components["schemas"]["RegisterBodyDto"]>({
 });
 
 const handleRegister = async () => {
-  const { register } = useAuthStore();
+  isLoading.value = true;
+  errorMessage.value = "";
   try {
-    await register(registrationForm);
-  } catch (error) {
-    console.error("Registration failed:", error);
+    await authStore.register(registrationForm);
+  } catch (error: any) {
+    if (error.data && error.data.message) {
+      errorMessage.value = Array.isArray(error.data.message)
+        ? error.data.message.join(", ")
+        : error.data.message;
+    } else {
+      errorMessage.value = "An unexpected error occurred.";
+    }
+  } finally {
+    isLoading.value = false;
   }
 };
 </script>

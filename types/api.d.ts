@@ -1063,6 +1063,17 @@ export interface components {
       /** @default 2025-11-04T06:21:28.252Z */
       timestamp: string;
     };
+    ErorrResponse: {
+      /** @default false */
+      success: boolean;
+      status: number;
+      message?: string;
+      /** @default Forbidden Exception */
+      error: unknown | string;
+      path: string;
+      /** @default 2025-11-04T06:21:28.256Z */
+      timestamp: string;
+    };
     ForbiddenResponse: {
       /** @default false */
       success: boolean;

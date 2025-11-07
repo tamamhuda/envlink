@@ -1,16 +1,20 @@
-import { useAuthCookie } from "#imports";
-import { navigateTo, useNuxtApp } from "nuxt/app";
+import { useApi, useAuthCookie } from "#imports";
+import { navigateTo } from "nuxt/app";
 import { defineStore } from "pinia";
 import type { components } from "~/types/api";
 
 type User = components["schemas"]["UserInfoResponse"]["data"];
 type Tokens = components["schemas"]["AuthenticatedResponse"]["data"]["tokens"];
+type AuthResponse = components["schemas"]["AuthenticatedResponse"];
+type ErrorResponse = components["schemas"]["ErorrResponse"];
 
 export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null as User | null,
     tokens: null as Tokens | null,
-    initialized: false, // prevent multiple re-fetch
+    initialized: false,
+    error: null as string | null,
+    loading: false,
   }),
 
   getters: {
@@ -24,68 +28,91 @@ export const useAuthStore = defineStore("auth", {
 
     setTokens(tokens: Tokens) {
       this.tokens = tokens;
+
       if (import.meta.client) {
         const cookie = useAuthCookie();
         cookie.value = JSON.stringify(tokens);
       }
     },
 
-    async register(registrationForm: components["schemas"]["RegisterBodyDto"]) {
-      const api = useNuxtApp().$api;
-      const response = await api<
-        components["schemas"]["AuthenticatedResponse"]
-      >("/api/v1/auth/register", { method: "POST", body: registrationForm });
-
-      if (response?.data) {
-        const { tokens, user } = response.data;
-        this.setTokens(tokens);
-        this.setUser(user);
-        await navigateTo("/verify");
-      }
+    clearAuth() {
+      this.user = null;
+      this.tokens = null;
+      const cookie = useAuthCookie();
+      cookie.value = null;
     },
 
-    async login(credentials: components["schemas"]["LoginBodyDto"]) {
-      const api = useNuxtApp().$api;
-      const response = await api<
-        components["schemas"]["AuthenticatedResponse"]
-      >("/api/v1/auth/login", { method: "POST", body: credentials });
+    async useFetchLogin(credentials: components["schemas"]["LoginBodyDto"]) {
+      const { execute, pending, error } = await useApi<
+        AuthResponse,
+        ErrorResponse
+      >("/api/v1/auth/login", {
+        method: "POST",
+        body: credentials,
+        immediate: false,
+        onResponse: async ({ response }) => {
+          if (response._data) {
+            const { tokens, user } = response._data.data;
+            this.setTokens(tokens);
+            this.setUser(user);
+            await navigateTo("/dashboard");
+          }
+        },
+      });
 
-      if (response?.data) {
-        const { tokens, user } = response.data;
-        this.setTokens(tokens);
-        this.setUser(user);
-        await navigateTo("/dashboard");
-      }
+      return { login: execute, pending, error };
+    },
+
+    async useFetchRegister(
+      registrationForm: components["schemas"]["RegisterBodyDto"],
+    ) {
+      const { execute, pending, error } = await useApi<
+        AuthResponse,
+        ErrorResponse
+      >("/api/v1/auth/register", {
+        method: "POST",
+        body: registrationForm,
+        immediate: false,
+        onResponse: async ({ response }) => {
+          if (response._data) {
+            const { tokens, user } = response._data.data;
+            this.setTokens(tokens);
+            this.setUser(user);
+            await navigateTo({
+              path: "/account/verification",
+              query: { from: "register" },
+            });
+          }
+        },
+      });
+
+      return { register: execute, pending, error };
+    },
+
+    async useFetchUser() {
+      const { execute, data, pending, error } = await useApi<
+        components["schemas"]["UserInfoResponse"],
+        ErrorResponse
+      >(
+        "/api/v1/user/me",
+        {
+          method: "GET",
+          immediate: false,
+          onResponse: ({ response }) => {
+            if (response._data?.data) {
+              this.setUser(response._data.data);
+            }
+          },
+        },
+        true,
+      );
+
+      return { executeFetchUser: execute, data, pending, error };
     },
 
     async logout({ redirect = true } = {}) {
-      this.user = null;
-      this.tokens = null;
-      if (import.meta.client) {
-        const cookie = useAuthCookie();
-        cookie.value = null;
-      }
+      this.clearAuth();
       if (redirect) await navigateTo("/login");
-    },
-
-    async fetchUser() {
-      // if (!import.meta.client) return;
-      if (!this.tokens) return;
-
-      const api = useNuxtApp().$api;
-      try {
-        const response = await api<components["schemas"]["UserInfoResponse"]>(
-          "/api/v1/user/me",
-          {
-            method: "GET",
-          },
-        );
-        if (response?.data) {
-          this.setUser(response.data);
-        }
-      } catch {
-        await this.logout();
-      }
     },
 
     hasCookie() {
@@ -117,15 +144,10 @@ export const useAuthStore = defineStore("auth", {
       this.initialized = true;
 
       await this.bootstrapTokens();
+      if (!this.tokens) return;
 
-      if (!this.tokens) return; // nothing to initialize
-
-      try {
-        await this.fetchUser(); // API request
-      } catch (err) {
-        console.warn("User fetch failed:", err);
-        await this.logout({ redirect: false });
-      }
+      const { executeFetchUser } = await this.useFetchUser();
+      await executeFetchUser();
     },
   },
 });

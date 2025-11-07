@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { definePageMeta } from "#imports";
+import { definePageMeta, onMounted } from "#imports";
 import { ref } from "vue";
 
 const loading = ref(true);
 
 definePageMeta({
   layout: "main",
+});
+
+onMounted(async () => {
+  loading.value = false;
 });
 </script>
 

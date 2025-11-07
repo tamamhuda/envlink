@@ -28,7 +28,7 @@
           </div>
           <FormInput
             id="full_name"
-            v-model="userForm.full_name"
+            :model-value="userForm.full_name ?? ''"
             label="Full Name"
             type="text"
             required
@@ -36,7 +36,7 @@
 
           <FormInput
             id="username"
-            v-model="userForm.username"
+            :model-value="userForm.username ?? ''"
             label="Username"
             type="text"
             required
@@ -44,7 +44,7 @@
 
           <FormInput
             id="email"
-            v-model="userForm.email"
+            :model-value="userForm.email ?? ''"
             label="Email address"
             type="email"
             required
@@ -52,7 +52,7 @@
 
           <FormInput
             id="phone_number"
-            v-model="userForm.phone_number"
+            :model-value="userForm.phone_number ?? ''"
             label="Phone Number"
             type="text"
           />
@@ -101,7 +101,7 @@
 <script setup lang="ts">
 import { useNuxtApp } from "#app";
 import { onMounted, ref, reactive, watch } from "vue";
-import { useAuthStore } from "#imports";
+import { definePageMeta, useAuthStore } from "#imports";
 import type { components } from "~/types/api";
 
 const authStore = useAuthStore();
@@ -173,7 +173,7 @@ const updateProfile = async () => {
       },
     );
     if (response) {
-      authStore.setUser(response);
+      authStore.setUser(response.data);
       successMessage.value = "Profile updated successfully!";
     }
   } catch (error: any) {
@@ -188,4 +188,8 @@ const updateProfile = async () => {
     isLoading.value = false;
   }
 };
+
+definePageMeta({
+  layout: "authenticated",
+});
 </script>

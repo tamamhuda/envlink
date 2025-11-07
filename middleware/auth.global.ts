@@ -1,4 +1,4 @@
-import { useAuthStore } from "#imports";
+import { computed, useAuthStore } from "#imports";
 import { defineNuxtRouteMiddleware, navigateTo } from "nuxt/app";
 
 export default defineNuxtRouteMiddleware(async (to) => {
@@ -11,11 +11,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
     "/register",
     "/forgot-password",
     "/reset-password",
-    "/verify",
     "/",
   ];
+  const privateRoutes = ["/dashboard", "/account", "/settings"];
+
   const isPublic = publicRoutes.some((route) => to.path.startsWith(route));
+  const isPrivate = privateRoutes.some((route) => to.path.startsWith(route));
   const hasCookie = auth.hasCookie();
+  const isVerified = computed(() => auth.user?.providers.is_verified);
 
   // In your route middleware or entry logic
   if (!hasCookie && !isPublic) {
@@ -26,8 +29,13 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (hasCookie) {
     await auth.initializeAuth();
 
-    if (["/login", "/register"].includes(to.path)) {
+    if (["/login", "/register", "/dashboard"].includes(to.path)) {
+      if (!isVerified.value) {
+        return navigateTo("/account/verification");
+      }
       return navigateTo("/dashboard");
     }
+  } else if (!auth.isAuthenticated && isPrivate) {
+    return navigateTo("/error/401");
   }
 });

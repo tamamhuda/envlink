@@ -4,258 +4,279 @@
   >
     <!-- Header -->
     <header
-      class="flex items-center justify-between px-6 sm:px-8 py-4 border-b border-[var(--border-color)] max-w-[960px] mx-auto w-full"
+      class="fixed top-0 left-0 w-full z-50 bg-[var(--bg-color)] border-b border-[var(--border-color)] shadow-sm"
     >
-      <!-- Brand -->
-      <NuxtLink
-        to="/dashboard"
-        class="flex items-center gap-2 hover:opacity-90 transition-opacity no-underline"
+      <div
+        class="max-w-[960px] min-h-18 mx-auto flex items-center justify-between px-6 sm:px-8 py-4"
       >
-        <h1
-          class="text-xl font-semibold tracking-tight text-[var(--text-color)]"
+        <!-- Brand -->
+        <button
+          class="rounded-xl border-t border-l border-[white] shadow-inner bg-[var(--bg-color)] transition-all"
+          @click="navigateHome"
         >
-          Stativio
-        </h1>
-      </NuxtLink>
+          <div
+            class="rounded-xl rounded-tr-2xl py-2 px-5 bg-[var(--bg-color)] shadow-[inset_-5px_-5px_0px_var(--text-color),inset_4px_5px_0px_grey,inset_-4px_7px_0px_grey,inset_-5px_-6px_0px_white] transition-all"
+          >
+            <h1
+              class="text-xl !underline font-semibold tracking-tight text-[var(--text-color)]"
+            >
+              Envlink
+            </h1>
+          </div>
+        </button>
 
-      <!-- Actions -->
-      <div class="flex items-center gap-5">
         <!-- Navigation -->
-        <nav class="hidden sm:flex items-center gap-4 text-sm font-medium">
-          <NuxtLink
-            to="/settings"
-            class="no-underline text-[var(--text-color)] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+        <nav class="hidden sm:flex items-center gap-6 text-sm font-medium">
+          <button
+            class="hover:text-indigo-600 transition-colors"
+            @click="navigateAndScroll('pricing')"
           >
-            Settings
-          </NuxtLink>
+            Pricing
+          </button>
+
+          <button
+            :disabled="!isClientOnly"
+            class="ml-4 px-4 py-2 !min-w-32 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
+            @click="handlePrimaryAction"
+          >
+            <span v-if="!hasCookie">
+              <span v-if="isAuthRoute">Quick Try</span>
+              <span v-else>Quick Start</span>
+            </span>
+            <span v-else> Dashboard </span>
+          </button>
         </nav>
-
-        <!-- Notifications -->
-        <div ref="notifRef" class="relative">
-          <button
-            class="relative flex items-center justjustify-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-            aria-label="Notifications"
-            @click="toggleNotifications"
-          >
-            <svg
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
-            </svg>
-            <span
-              v-if="unreadCount > 0"
-              class="absolute top-1.5 right-1.5 w-2 h-2 bg-indigo-600 rounded-full"
-            ></span>
-          </button>
-
-          <!-- Notification Dropdown -->
-          <Transition
-            enter-active-class="transition ease-out duration-100"
-            enter-from-class="transform opacity-0 scale-95"
-            enter-to-class="transform opacity-100 scale-100"
-            leave-active-class="transition ease-in duration-75"
-            leave-from-class="transform opacity-100 scale-100"
-            leave-to-class="transform opacity-0 scale-95"
-          >
-            <div
-              v-if="isNotifOpen"
-              class="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-900 border border-[var(--border-color)] rounded-lg shadow-lg z-50"
-            >
-              <div
-                class="px-4 py-2 border-b border-[var(--border-color)] font-medium text-sm"
-              >
-                Notifications
-              </div>
-              <div
-                v-if="notifications.length > 0"
-                class="max-h-64 overflow-y-auto"
-              >
-                <div
-                  v-for="(notif, index) in notifications"
-                  :key="index"
-                  class="px-4 py-3 border-b border-[var(--border-color)] last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                >
-                  <p class="text-sm font-medium">{{ notif.title }}</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ notif.time }}
-                  </p>
-                </div>
-              </div>
-              <div
-                v-else
-                class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-400"
-              >
-                No new notifications
-              </div>
-            </div>
-          </Transition>
-        </div>
-
-        <!-- User Dropdown -->
-        <div ref="dropdownRef" class="relative">
-          <button
-            class="flex items-center rounded-md py-0.5 gap-2 hover:opacity-90 transition-opacity"
-            aria-label="User menu"
-            @click="toggleDropdown"
-          >
-            <img
-              v-if="user?.avatar"
-              :src="user.avatar"
-              :alt="user.full_name || user.username"
-              class="w-8 h-8 rounded-full object-cover border border-[var(--border-color)]"
-            />
-            <div
-              v-else
-              class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium"
-            >
-              <div v-if="user && isClientOnly">
-                {{ getInitials(user.full_name || user.username) }}
-              </div>
-              <div v-else>U</div>
-            </div>
-          </button>
-
-          <Transition
-            enter-active-class="transition ease-out duration-100"
-            enter-from-class="transform opacity-0 scale-95"
-            enter-to-class="transform opacity-100 scale-100"
-            leave-active-class="transition ease-in duration-75"
-            leave-from-class="transform opacity-100 scale-100"
-            leave-to-class="transform opacity-0 scale-95"
-          >
-            <div
-              v-if="isDropdownOpen"
-              class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-900 border border-[var(--border-color)] rounded-lg shadow-lg py-1 z-50"
-            >
-              <div class="px-4 py-3 border-b border-[var(--border-color)]">
-                <p class="text-sm font-medium">
-                  {{ user?.full_name || user?.username }}
-                </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  {{ user?.email }}
-                </p>
-              </div>
-
-              <NuxtLink
-                to="/profile"
-                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
-                @click="closeDropdown"
-              >
-                <span>Profile</span>
-              </NuxtLink>
-
-              <NuxtLink
-                to="/settings"
-                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
-                @click="closeDropdown"
-              >
-                <span>Settings</span>
-              </NuxtLink>
-
-              <div class="border-t border-[var(--border-color)] mt-1"></div>
-
-              <button
-                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-red-600 dark:text-red-400"
-                @click="handleLogout"
-              >
-                Logout
-              </button>
-            </div>
-          </Transition>
-        </div>
       </div>
     </header>
 
-    <!-- Main Content -->
-    <main
-      class="text-center p-6 sm:p-12 max-w-[900px] min-h-full flex mx-auto flex-1 w-full"
-    >
-      <NuxtPage />
+    <!-- Main Slot for Auth Routes -->
+    <NuxtPage />
+
+    <!-- Main Home Content -->
+    <main v-if="!isAuthRoute" class="flex-1 pt-20 w-full">
+      <!-- Welcome Section -->
+      <section
+        ref="welcomeRef"
+        class="min-h-screen flex flex-col justify-center items-center text-center px-6"
+      >
+        <div class="max-w-2xl mx-auto space-y-6">
+          <div>
+            <h2 class="text-5xl font-bold tracking-tight mb-4">
+              Shorten Smarter with Envlink
+            </h2>
+            <p class="text-lg opacity-80 leading-relaxed">
+              Simplify your links, track performance, and manage everything from
+              one intuitive dashboard.
+            </p>
+          </div>
+
+          <div
+            class="mt-10 w-full py-8 px-4 sm:rounded-lg sm:px-10 border border-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)] bg-[var(--bg-color)] transition-colors"
+          >
+            <input
+              type="text"
+              placeholder="Paste your long URL here"
+              class="w-full mb-4 rounded-md border border-[var(--text-color)] bg-transparent px-4 py-2 text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--text-color)]"
+            />
+            <button
+              class="inline-block w-full rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all bg-transparent text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--text-color)]"
+            >
+              Shorten URL
+            </button>
+          </div>
+
+          <div
+            class="mt-6 flex flex-wrap justify-center gap-3 text-sm opacity-70"
+          >
+            <span class="px-3 py-1 border border-[var(--text-color)] rounded-md"
+              >Free to start</span
+            >
+            <span class="px-3 py-1 border border-[var(--text-color)] rounded-md"
+              >Custom Aliases</span
+            >
+            <span class="px-3 py-1 border border-[var(--text-color)] rounded-md"
+              >Analytics Dashboard</span
+            >
+          </div>
+        </div>
+      </section>
+
+      <!-- Pricing Section -->
+      <section
+        id="pricing"
+        ref="pricingRef"
+        class="min-h-screen flex flex-col justify-center items-center px-6 text-center"
+      >
+        <h3 class="text-3xl font-semibold mb-10 tracking-tight">Pricing</h3>
+
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl w-full"
+        >
+          <PlanCard
+            name="Free"
+            description="Essential link shortening tools."
+            price="$0 / month"
+            :features="['Short Links', 'Custom Aliases', 'Basic Analytics']"
+            cta="Get Started"
+          />
+
+          <PlanCard
+            name="Starter"
+            description="Grow your personal or small project."
+            price="$5 / month"
+            :features="[
+              'All Free features',
+              'Batch Links (up to 100)',
+              'QR Codes',
+              'Simple Geo Targeting',
+            ]"
+            cta="Start Now"
+          />
+
+          <PlanCard
+            name="Pro"
+            description="For teams and marketing professionals."
+            price="$15 / month"
+            :features="[
+              'All Starter features',
+              'Advanced Analytics',
+              'Device Targeting',
+              'Metadata Fetching',
+            ]"
+            cta="Upgrade"
+          />
+
+          <PlanCard
+            name="Enterprise (Developer API)"
+            description="Full control and scalability with API access."
+            price="Contact us"
+            :features="[
+              'All Pro features',
+              'Unlimited Batch Links',
+              'Dedicated API Key',
+              'Priority Support',
+            ]"
+            cta="Contact Sales"
+          />
+        </div>
+      </section>
     </main>
 
     <!-- Footer -->
     <footer
-      class="border-t border-[var(--border-color)] text-center py-4 text-sm mt-auto max-w-[960px] mx-auto w-full text-gray-600 dark:text-gray-400"
+      class="border-t border-[var(--border-color)] text-center py-6 text-sm mt-auto max-w-[960px] mx-auto w-full text-gray-600 dark:text-gray-400"
     >
-      © <span>{{ year }}</span> Stativio. Conscious uptime detected.
+      © {{ year }} Envlink. All rights reserved.
     </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, useAuthStore } from "#imports";
+import {
+  computed,
+  onMounted,
+  ref,
+  watch,
+  nextTick,
+  useRouter,
+  useRoute,
+  navigateTo,
+  useAuthStore,
+} from "#imports";
 
-const isClientOnly = ref(false);
+const authStore = useAuthStore();
+const { executeFetchUser } = await authStore.useFetchUser();
+const router = useRouter();
+const route = useRoute();
+const hasCookie = computed(() => authStore.hasCookie());
 
-const { user, logout } = useAuthStore();
 const year = new Date().getFullYear();
+const isClientOnly = ref(false);
+const isAuthenticcated = computed(() => authStore.isAuthenticated);
 
-// Dropdowns
-const isDropdownOpen = ref(false);
-const isNotifOpen = ref(false);
-const dropdownRef = ref<HTMLElement | null>(null);
-const notifRef = ref<HTMLElement | null>(null);
+// Refs for scroll targets
+const pricingRef = ref<HTMLElement | null>(null);
 
-// Mock notifications
-const notifications = ref([
-  { title: "Server usage exceeded 80%", time: "2 minutes ago" },
-  { title: "New login detected from Chrome", time: "1 hour ago" },
-  { title: "Subscription renewed successfully", time: "Yesterday" },
-]);
-const unreadCount = computed(() => notifications.value.length);
-
-// --- Logic ---
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-  if (isDropdownOpen.value) isNotifOpen.value = false;
-};
-const closeDropdown = () => (isDropdownOpen.value = false);
-
-const toggleNotifications = () => {
-  isNotifOpen.value = !isNotifOpen.value;
-  if (isNotifOpen.value) isDropdownOpen.value = false;
-};
-
-const handleLogout = () => {
-  closeDropdown();
-  logout();
-};
-
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-const handleClickOutside = (event: MouseEvent) => {
-  if (
-    dropdownRef.value &&
-    !dropdownRef.value.contains(event.target as Node) &&
-    notifRef.value &&
-    !notifRef.value.contains(event.target as Node)
-  ) {
-    isDropdownOpen.value = false;
-    isNotifOpen.value = false;
-  }
-};
-
+// Detect client
 onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-  if (import.meta.client) {
-    isClientOnly.value = true;
+  if (import.meta.client) isClientOnly.value = true;
+});
+
+// Track current route (for auth routes)
+const isAuthRoute = ref(false);
+watch(
+  () => router.currentRoute.value.path,
+  (path) => {
+    isAuthRoute.value = ["/login", "/register", "/verify"].includes(path);
+  },
+  { immediate: true },
+);
+
+// Navigation helpers
+const navigateHome = async () => {
+  if (router.currentRoute.value.path === "/") {
+    // Already on home, scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    router.replace({ path: "/" });
+  } else {
+    // Navigate to home page
+    await navigateTo("/");
+  }
+};
+
+// Use query param scroll
+const navigateAndScroll = async (section: string) => {
+  if (router.currentRoute.value.path !== "/") {
+    await navigateTo("/");
+    setTimeout(() => {
+      navigateTo({ path: "/", query: { scroll: section } });
+    }, 300);
+  } else {
+    scrollToSection(section);
+  }
+};
+
+// Scroll handler
+const scrollToSection = async (section: string) => {
+  await nextTick();
+  const refsMap = { pricing: pricingRef };
+  const target = refsMap[section as keyof typeof refsMap]?.value;
+  if (target) {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+};
+
+// Handle scroll query param
+onMounted(() => {
+  const scrollTarget = route.query.scroll as string;
+  if (scrollTarget) scrollToSection(scrollTarget);
+});
+
+// Optional: clean URL after scroll
+watch(
+  () => route.query.scroll,
+  async (val) => {
+    if (val) {
+      await scrollToSection(val as string);
+      // router.replace({ query: {} });
+    }
+  },
+);
+
+watch(hasCookie, async () => {
+  if (isClientOnly.value) {
+    await executeFetchUser();
   }
 });
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
+
+// Primary button logic
+const handlePrimaryAction = async () => {
+  if (isAuthenticcated.value) {
+    await navigateTo("/dashboard");
+  } else if (isAuthRoute.value) {
+    await navigateTo("/");
+  } else {
+    await navigateTo("/register");
+  }
+};
 </script>

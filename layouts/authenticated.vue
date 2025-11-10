@@ -1,33 +1,139 @@
+<script setup lang="ts">
+import {
+  computed,
+  onMounted,
+  onUnmounted,
+  ref,
+  useAccountApi,
+  useAuthStore,
+  useRoute,
+} from "#imports";
+import { Menu, User, Pencil, CreditCard, LogOut } from "lucide-vue-next";
+
+import { useSidebar } from "~/composables/useSidebar";
+
+const { toggle: toggleSidebar } = useSidebar();
+const isClientOnly = ref(false);
+const auth = useAuthStore();
+const accountApi = useAccountApi();
+const { fetchLogout } = await accountApi.useFetchLogout();
+const { user } = auth;
+const year = new Date().getFullYear();
+const route = useRoute();
+
+// Dropdowns
+const isDropdownOpen = ref(false);
+const isNotifOpen = ref(false);
+const dropdownRef = ref<HTMLElement | null>(null);
+const notifRef = ref<HTMLElement | null>(null);
+const isVerified = computed(() => user?.providers.is_verified || false);
+const isAuthenticated = computed(() => auth.isAuthenticated);
+
+const isUpgradePage = computed(
+  () => route.path === "/account/subscriptions/upgrade",
+);
+
+// Mock notifications
+const notifications = ref([
+  { title: "Server usage exceeded 80%", time: "2 minutes ago" },
+  { title: "New login detected from Chrome", time: "1 hour ago" },
+  { title: "Subscription renewed successfully", time: "Yesterday" },
+]);
+const unreadCount = computed(() => notifications.value.length);
+
+// --- Logic ---
+const toggleDropdown = () => {
+  isDropdownOpen.value = !isDropdownOpen.value;
+  if (isDropdownOpen.value) isNotifOpen.value = false;
+};
+const closeDropdown = () => (isDropdownOpen.value = false);
+
+const toggleNotifications = () => {
+  isNotifOpen.value = !isNotifOpen.value;
+  if (isNotifOpen.value) isDropdownOpen.value = false;
+};
+
+const handleLogout = async () => {
+  closeDropdown();
+  await fetchLogout();
+};
+
+const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (
+    dropdownRef.value &&
+    !dropdownRef.value.contains(event.target as Node) &&
+    notifRef.value &&
+    !notifRef.value.contains(event.target as Node)
+  ) {
+    isDropdownOpen.value = false;
+    isNotifOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+  if (import.meta.client) {
+    isClientOnly.value = true;
+  }
+});
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
+</script>
+
 <template>
   <div
     class="flex flex-col min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] transition-colors duration-300"
   >
     <!-- Header -->
     <header
-      class="flex items-center justify-between px-6 sm:px-8 py-4 border-b border-[var(--border-color)] max-w-[960px] mx-auto w-full"
+      class="flex items-center justify-between px-6 sm:px-8 py-4 border-b border-[var(--border-color)] max-w-full mx-auto w-full"
     >
-      <!-- Brand -->
-      <NuxtLink
-        to="/dashboard"
-        class="rounded-md border border-black px-4 py-2 font-medium shadow-[4px_4px_0_black] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_black] transition-all bg-transparent"
+      <button
+        v-if="!isUpgradePage"
+        class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800/50 md:hidden"
+        @click="toggleSidebar"
       >
-        <h1
-          class="text-xl font-semibold tracking-tight text-[var(--text-color)]"
-        >
-          Envlink
-        </h1>
-      </NuxtLink>
+        <Menu class="w-6 h-6" />
+      </button>
+      <!-- Brand -->
+      <div
+        class="flex-1 md:flex-none md:justify-center md:w-72 flex justify-center items-center"
+      >
+        <NuxtLink to="/dashboard" class="rounded-md font-medium">
+          <h1
+            class="text-xl font-semibold tracking-tight text-[var(--text-color)]"
+          >
+            Envlink
+          </h1>
+        </NuxtLink>
+      </div>
 
       <!-- Actions -->
       <div class="flex items-center gap-5">
         <!-- Navigation -->
         <nav class="hidden sm:flex items-center gap-4 text-sm font-medium">
           <NuxtLink
-            v-if="isVerified"
+            v-if="isClientOnly && isVerified && !isUpgradePage"
             to="/account/subscriptions/upgrade"
-            class="no-underline text-[var(--text-color)] hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+            class="no-underline rounded-md border border-[var(--text-color)] px-4 py-2 text-sm font-medium shadow-[2px_2px_0_var(--text-color)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_var(--text-color)] transition-all"
           >
             Upgrade
+          </NuxtLink>
+          <NuxtLink
+            v-if="isUpgradePage"
+            to="/dashboard"
+            class="no-underline rounded-md border border-[var(--text-color)] px-4 py-2 text-sm font-medium shadow-[2px_2px_0_var(--text-color)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_var(--text-color)] transition-all"
+          >
+            Dashboard
           </NuxtLink>
         </nav>
 
@@ -69,7 +175,7 @@
           >
             <div
               v-if="isNotifOpen"
-              class="absolute right-0 mt-2 w-72 bg-white dark:bg-gray-900 border border-[var(--border-color)] rounded-lg shadow-lg z-50"
+              class="absolute right-0 mt-2 w-72 bg-[var(--bg-color)] border border-[var(--text-color)] rounded-lg shadow-[4px_4px_0_var(--text-color)] z-50"
             >
               <div
                 class="px-4 py-2 border-b border-[var(--border-color)] font-medium text-sm"
@@ -135,7 +241,7 @@
           >
             <div
               v-if="isDropdownOpen"
-              class="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-900 border border-[var(--border-color)] rounded-lg shadow-lg py-1 z-[99]"
+              class="absolute right-0 mt-2 w-56 bg-[var(--bg-color)] border border-[var(--text-color)] rounded-lg shadow-[4px_4px_0_var(--text-color)] py-1 z-[99]"
             >
               <div
                 v-if="isClientOnly && isAuthenticated"
@@ -151,10 +257,21 @@
 
               <NuxtLink
                 v-if="isClientOnly && isAuthenticated"
+                to="/account"
+                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
+                @click="closeDropdown"
+              >
+                <User class="w-4 h-4" />
+                <span>Account</span>
+              </NuxtLink>
+
+              <NuxtLink
+                v-if="isClientOnly && isAuthenticated"
                 to="/account/profile"
                 class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
                 @click="closeDropdown"
               >
+                <Pencil class="w-4 h-4" />
                 <span>Profile</span>
               </NuxtLink>
 
@@ -164,7 +281,8 @@
                 class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
                 @click="closeDropdown"
               >
-                <span>Manage Subscriptions</span>
+                <CreditCard class="w-4 h-4" />
+                <span> Subscriptions</span>
               </NuxtLink>
 
               <!-- <div class="border-t border-[var(--border-color)] mt-1"></div> -->
@@ -173,7 +291,8 @@
                 class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-red-600 dark:text-red-400"
                 @click="handleLogout"
               >
-                Logout
+                <LogOut class="w-4 h-4" />
+                <span>Logout</span>
               </button>
             </div>
           </Transition>
@@ -181,12 +300,7 @@
       </div>
     </header>
 
-    <!-- Main Content -->
-    <main
-      class="text-center p-6 sm:p-12 max-w-[900px] min-h-full flex mx-auto flex-1 w-full"
-    >
-      <NuxtPage />
-    </main>
+    <slot />
 
     <!-- Footer -->
     <footer
@@ -196,75 +310,3 @@
     </footer>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, useAuthStore } from "#imports";
-
-const isClientOnly = ref(false);
-const auth = useAuthStore();
-const { user, logout } = auth;
-const year = new Date().getFullYear();
-
-// Dropdowns
-const isDropdownOpen = ref(false);
-const isNotifOpen = ref(false);
-const dropdownRef = ref<HTMLElement | null>(null);
-const notifRef = ref<HTMLElement | null>(null);
-const isVerified = computed(() => user?.providers.is_verified || false);
-const isAuthenticated = computed(() => auth.isAuthenticated);
-
-// Mock notifications
-const notifications = ref([
-  { title: "Server usage exceeded 80%", time: "2 minutes ago" },
-  { title: "New login detected from Chrome", time: "1 hour ago" },
-  { title: "Subscription renewed successfully", time: "Yesterday" },
-]);
-const unreadCount = computed(() => notifications.value.length);
-
-// --- Logic ---
-const toggleDropdown = () => {
-  isDropdownOpen.value = !isDropdownOpen.value;
-  if (isDropdownOpen.value) isNotifOpen.value = false;
-};
-const closeDropdown = () => (isDropdownOpen.value = false);
-
-const toggleNotifications = () => {
-  isNotifOpen.value = !isNotifOpen.value;
-  if (isNotifOpen.value) isDropdownOpen.value = false;
-};
-
-const handleLogout = () => {
-  closeDropdown();
-  logout();
-};
-
-const getInitials = (name: string) =>
-  name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-
-const handleClickOutside = (event: MouseEvent) => {
-  if (
-    dropdownRef.value &&
-    !dropdownRef.value.contains(event.target as Node) &&
-    notifRef.value &&
-    !notifRef.value.contains(event.target as Node)
-  ) {
-    isDropdownOpen.value = false;
-    isNotifOpen.value = false;
-  }
-};
-
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-  if (import.meta.client) {
-    isClientOnly.value = true;
-  }
-});
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
-</script>

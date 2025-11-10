@@ -11,18 +11,14 @@
       >
         <!-- Brand -->
         <button
-          class="rounded-xl border-t border-l border-[white] shadow-inner bg-[var(--bg-color)] transition-all"
+          class="rounded-xl bg-[var(--bg-color)] transition-all"
           @click="navigateHome"
         >
-          <div
-            class="rounded-xl rounded-tr-2xl py-2 px-5 bg-[var(--bg-color)] shadow-[inset_-5px_-5px_0px_var(--text-color),inset_4px_5px_0px_grey,inset_-4px_7px_0px_grey,inset_-5px_-6px_0px_white] transition-all"
+          <h1
+            class="text-xl font-semibold tracking-tight text-[var(--text-color)]"
           >
-            <h1
-              class="text-xl !underline font-semibold tracking-tight text-[var(--text-color)]"
-            >
-              Envlink
-            </h1>
-          </div>
+            Envlink
+          </h1>
         </button>
 
         <!-- Navigation -->
@@ -53,7 +49,7 @@
     <NuxtPage />
 
     <!-- Main Home Content -->
-    <main v-if="!isAuthRoute" class="flex-1 pt-20 w-full">
+    <main v-if="!isAuthRoute" class="flex-1 py-20 w-full">
       <!-- Welcome Section -->
       <section
         ref="welcomeRef"
@@ -73,13 +69,18 @@
           <div
             class="mt-10 w-full py-8 px-4 sm:rounded-lg sm:px-10 border border-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)] bg-[var(--bg-color)] transition-colors"
           >
-            <input
-              type="text"
-              placeholder="Paste your long URL here"
-              class="w-full mb-4 rounded-md border border-[var(--text-color)] bg-transparent px-4 py-2 text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--text-color)]"
-            />
+            <div class="relative group mb-4">
+              <Link
+                class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 opacity-50 transition-opacity group-focus-within:opacity-100"
+              />
+              <input
+                type="text"
+                placeholder="Paste your long URL here"
+                class="inline-flex w-full justify-center items-center border border-[var(--text-color)] font-medium shadow-[4px_4px_0_var(--text-color)] bg-transparent text-[var(--text-color)] focus:shadow-[2px_2px_0_blue] focus:outline-none focus:ring-offset-0 focus:ring-[var(--text-color)] pl-10 pr-4 py-3 rounded-lg transition-colors"
+              />
+            </div>
             <button
-              class="inline-block w-full rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all bg-transparent text-[var(--text-color)] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--text-color)]"
+              class="w-full inline-flex items-center justify-center gap-2 rounded-lg border-l border-t border-white px-4 py-3 text-base font-semibold shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] bg-blue-700/80 text-white hover:translate-x-[2px] hover:translate-y-[2px] active:scale-95 transition-all"
             >
               Shorten URL
             </button>
@@ -107,57 +108,94 @@
         ref="pricingRef"
         class="min-h-screen flex flex-col justify-center items-center px-6 text-center"
       >
-        <h3 class="text-3xl font-semibold mb-10 tracking-tight">Pricing</h3>
+        <div class="text-center mb-12 max-w-3xl mx-auto">
+          <h2 class="text-4xl font-bold tracking-tight sm:text-5xl">
+            Simple, transparent pricing
+          </h2>
+          <p class="mt-4 text-lg text-gray-600 dark:text-gray-400">
+            Choose the plan that fits your needs.
+          </p>
+        </div>
 
         <div
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl w-full"
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl w-full"
         >
-          <PlanCard
-            name="Free"
-            description="Essential link shortening tools."
-            price="$0 / month"
-            :features="['Short Links', 'Custom Aliases', 'Basic Analytics']"
-            cta="Get Started"
-          />
+          <div
+            v-for="plan in plans"
+            :key="plan.name"
+            class="relative flex flex-col p-8 border border-[var(--text-color)] rounded-md bg-transparent text-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0_var(--text-color)]"
+          >
+            <!-- Badge -->
+            <div
+              v-if="plan.popular"
+              class="absolute -top-4 left-1/2 transform -translate-x-1/2"
+            >
+              <span
+                class="inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-wide shadow-sm bg-[var(--text-color)] text-[var(--bg-color)]"
+              >
+                Most Popular
+              </span>
+            </div>
 
-          <PlanCard
-            name="Starter"
-            description="Grow your personal or small project."
-            price="$5 / month"
-            :features="[
-              'All Free features',
-              'Batch Links (up to 100)',
-              'QR Codes',
-              'Simple Geo Targeting',
-            ]"
-            cta="Start Now"
-          />
+            <!-- Card Content -->
+            <div class="flex-1">
+              <!-- Plan Name -->
+              <h3 class="text-xl font-semibold">
+                {{ plan.name }}
+              </h3>
 
-          <PlanCard
-            name="Pro"
-            description="For teams and marketing professionals."
-            price="$15 / month"
-            :features="[
-              'All Starter features',
-              'Advanced Analytics',
-              'Device Targeting',
-              'Metadata Fetching',
-            ]"
-            cta="Upgrade"
-          />
+              <!-- Description -->
+              <p class="mt-2 text-sm opacity-80">
+                {{ plan.description }}
+              </p>
 
-          <PlanCard
-            name="Enterprise (Developer API)"
-            description="Full control and scalability with API access."
-            price="Contact us"
-            :features="[
-              'All Pro features',
-              'Unlimited Batch Links',
-              'Dedicated API Key',
-              'Priority Support',
-            ]"
-            cta="Contact Sales"
-          />
+              <!-- Price -->
+              <div class="mt-6 mb-8">
+                <div class="flex items-baseline justify-center">
+                  <span class="text-4xl font-bold tracking-tight">
+                    {{ plan.price }}
+                  </span>
+                  <span
+                    v-if="plan.price !== 'Free' && plan.name !== 'Enterprise'"
+                    class="ml-2 text-sm opacity-70"
+                  >
+                    /month
+                  </span>
+                </div>
+              </div>
+
+              <!-- Features -->
+              <ul class="space-y-3 mb-8 text-left">
+                <li
+                  v-for="(feature, index) in plan.features"
+                  :key="index"
+                  class="flex items-start"
+                >
+                  <Check
+                    class="flex-shrink-0 w-5 h-5 text-[var(--text-color)] mt-0.5"
+                  />
+                  <span class="ml-3 text-sm">
+                    {{ feature }}
+                  </span>
+                </li>
+              </ul>
+            </div>
+
+            <!-- CTA Button -->
+            <div class="pt-0">
+              <button
+                @click="handlePrimaryAction"
+                class="w-full inline-flex items-center justify-center gap-2 rounded-lg border-l border-t border-white px-4 py-3 text-base font-semibold shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:shadow-[inset_-3px_-3px_0_var(--text-color),inset_3px_3px_0_#0b0d40] transition-all focus:outline-none hover:translate-x-[2px] hover:translate-y-[2px]"
+                :class="[
+                  plan.popular
+                    ? 'bg-blue-700/80 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200',
+                ]"
+              >
+                {{ plan.cta }}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -182,10 +220,63 @@ import {
   useRoute,
   navigateTo,
   useAuthStore,
+  useUserApi,
 } from "#imports";
+import { Check, Link } from "lucide-vue-next";
+
+const plans = ref([
+  {
+    name: "Free",
+    description: "Essential link shortening tools.",
+    price: "Free",
+    features: ["Short Links", "Custom Aliases", "Basic Analytics"],
+    cta: "Get Started",
+    popular: false,
+  },
+  {
+    name: "Starter",
+    description: "Grow your personal or small project.",
+    price: "$7.5",
+    features: [
+      "All Free features",
+      "Batch Links (up to 100)",
+      "QR Codes",
+      "Simple Geo Targeting",
+    ],
+    cta: "Start Now",
+    popular: false,
+  },
+  {
+    name: "Pro",
+    description: "For teams and marketing professionals.",
+    price: "$22.5",
+    features: [
+      "All Starter features",
+      "Advanced Analytics",
+      "Device Targeting",
+      "Metadata Fetching",
+    ],
+    cta: "Get Pro",
+    popular: true,
+  },
+  {
+    name: "Enterprise",
+    description: "Full control and scalability with API access.",
+    price: "Contact us",
+    features: [
+      "All Pro features",
+      "Unlimited Batch Links",
+      "Dedicated API Key",
+      "Priority Support",
+    ],
+    cta: "Contact Sales",
+    popular: false,
+  },
+]);
 
 const authStore = useAuthStore();
-const { executeFetchUser } = await authStore.useFetchUser();
+// const { fetchUser } = await authStore.useFetchUser();
+const { fetchUser } = await useUserApi().useFetchUser();
 const router = useRouter();
 const route = useRoute();
 const hasCookie = computed(() => authStore.hasCookie());
@@ -265,7 +356,7 @@ watch(
 
 watch(hasCookie, async () => {
   if (isClientOnly.value) {
-    await executeFetchUser();
+    await fetchUser();
   }
 });
 

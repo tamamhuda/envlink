@@ -29,11 +29,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (hasCookie) {
     await auth.initializeAuth();
 
-    if (["/login", "/register", "/dashboard"].includes(to.path)) {
-      if (!isVerified.value) {
-        return navigateTo("/account/verification");
-      }
-      return navigateTo("/dashboard");
+    if (
+      ["/login", "/register", "/dashboard"].includes(to.path) &&
+      !isVerified.value
+    ) {
+      return navigateTo("/auth/verify");
     }
   } else if (!auth.isAuthenticated && isPrivate) {
     return navigateTo("/error/401");

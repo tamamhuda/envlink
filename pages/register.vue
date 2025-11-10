@@ -157,15 +157,11 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, useAuthStore } from "#imports";
+import { definePageMeta, useAuthApi } from "#imports";
 import { reactive, ref } from "vue";
 import type { components } from "~/types/api";
 
-definePageMeta({
-  layout: "main",
-});
-
-const { useFetchRegister } = useAuthStore();
+const authApi = useAuthApi();
 const errorMessage = ref<string | null>(null);
 
 const registrationForm = reactive<components["schemas"]["RegisterBodyDto"]>({
@@ -180,13 +176,17 @@ const {
   register,
   pending: isLoading,
   error,
-} = await useFetchRegister(registrationForm);
+} = await authApi.useFetchRegister(registrationForm);
 
 const handleRegister = async () => {
   errorMessage.value = null;
   await register();
-  if (error.value) {
+  if (error.value?.data) {
     errorMessage.value = error.value.data?.message || "An error occurred";
   }
 };
+
+definePageMeta({
+  layout: "main",
+});
 </script>

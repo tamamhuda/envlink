@@ -15,7 +15,11 @@
         <div
           class="py-8 px-4 shadow-[4px_4px_0_var(--text-color)] sm:rounded-lg sm:px-10 border border-[var(--text-color)] bg-[var(--bg-color)] transition-colors"
         >
-          <form class="space-y-6" @submit.prevent="handleLogin">
+          <form
+            class="space-y-6"
+            @submit.prevent="handleLogin"
+            @keydown.enter.prevent
+          >
             <div
               v-if="errorMessage"
               class="rounded-md bg-red-50 p-4 border border-red-200"
@@ -107,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, useAuthStore } from "#imports";
+import { definePageMeta, useAuthApi } from "#imports";
 import { reactive, ref } from "vue";
 
 import type { components } from "~/types/api";
@@ -116,7 +120,7 @@ definePageMeta({
   layout: "main",
 });
 
-const auth = useAuthStore();
+const authApi = useAuthApi();
 
 const errorMessage = ref<string | null>(null);
 
@@ -128,12 +132,12 @@ const {
   login,
   pending: isLoading,
   error,
-} = await auth.useFetchLogin(credentials);
+} = await authApi.useFetchLogin(credentials);
 
 const handleLogin = async () => {
   await login();
   if (error.value) {
-    console.log(error.value);
+    console.log(error.value.data);
     errorMessage.value = error.value.data?.message || "An error occurred";
   }
 };

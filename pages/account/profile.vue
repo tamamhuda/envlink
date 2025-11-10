@@ -1,195 +1,161 @@
-<template>
-  <div
-    class="flex w-full min-h-full flex-col text-[var(--text-color)] transition-colors duration-300"
-  >
-    <main class="min-h-full w-full flex flex-1 max-w-7xl py-6 sm:px-6 lg:px-8">
-      <div
-        v-if="ready && user"
-        class="w-full max-h-fit rounded-lg border-2 border-dashed border-[var(--border-color)] bg-[var(--bg-color)] p-6 shadow-sm transition-colors"
-      >
-        <h3 class="text-lg font-medium leading-6">Update Profile</h3>
-
-        <form class="mt-6 space-y-6" @submit.prevent="updateProfile">
-          <div
-            v-if="errorMessage"
-            class="rounded-md bg-red-50 p-4 border border-red-200"
-          >
-            <p class="text-sm font-medium text-center text-red-800">
-              {{ errorMessage }}
-            </p>
-          </div>
-          <div
-            v-if="successMessage"
-            class="rounded-md bg-green-50 p-4 border border-green-200"
-          >
-            <p class="text-sm font-medium text-center text-green-800">
-              {{ successMessage }}
-            </p>
-          </div>
-          <FormInput
-            id="full_name"
-            :model-value="userForm.full_name ?? ''"
-            label="Full Name"
-            type="text"
-            required
-          />
-
-          <FormInput
-            id="username"
-            :model-value="userForm.username ?? ''"
-            label="Username"
-            type="text"
-            required
-          />
-
-          <FormInput
-            id="email"
-            :model-value="userForm.email ?? ''"
-            label="Email address"
-            type="email"
-            required
-          />
-
-          <FormInput
-            id="phone_number"
-            :model-value="userForm.phone_number ?? ''"
-            label="Phone Number"
-            type="text"
-          />
-
-          <div>
-            <button
-              type="submit"
-              :disabled="isLoading"
-              class="inline-flex justify-center items-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              :class="{ 'opacity-50 cursor-not-allowed': isLoading }"
-            >
-              <svg
-                v-if="isLoading"
-                class="animate-spin -ml-1 mr-3 h-5 w-5"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <circle
-                  class="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  stroke-width="4"
-                />
-                <path
-                  class="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                />
-              </svg>
-              {{ isLoading ? "Updating..." : "Update Profile" }}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div v-else class="flex justify-center items-center w-full">
-        <Loading />
-      </div>
-    </main>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { useNuxtApp } from "#app";
-import { onMounted, ref, reactive, watch } from "vue";
-import { definePageMeta, useAuthStore } from "#imports";
-import type { components } from "~/types/api";
+import { ref, reactive, computed, onMounted, watch } from "vue";
+import { definePageMeta, useAuthStore, useUserApi } from "#imports";
+import type { UpdateUserRequest } from "~/interfaces/api.interface";
 
-const authStore = useAuthStore();
-const api = useNuxtApp().$api;
+const isReady = ref(false);
+const auth = useAuthStore();
+const userApi = useUserApi();
+const { fetchUser } = await userApi.useFetchUser();
 
-const userForm = reactive<components["schemas"]["UpdateUserBodyDto"]>({
+const userForm = reactive<UpdateUserRequest>({
   full_name: "",
   username: "",
+  phone_number: "",
   email: "",
-  phone_number: null,
-  avatar: null,
 });
 
-const ready = ref(false);
-const user = ref(authStore.user);
+const errorMessage = ref<string | null>(null);
+const successMessage = ref<string | null>(null);
 const isLoading = ref(false);
-const errorMessage = ref("");
-const successMessage = ref("");
 
-// SSR + Client-safe user loading
-if (import.meta.server) {
-  // SSR-side prefetch if user not yet available
-  if (!authStore.user) {
-    await authStore.fetchUser?.();
-  }
-  user.value = authStore.user;
-  ready.value = true;
-} else {
-  // Client hydration phase
-  onMounted(async () => {
-    if (!authStore.user) {
-      await authStore.fetchUser?.();
-    }
-    user.value = authStore.user;
-    ready.value = true;
-  });
-}
+onMounted(async () => {
+  isReady.value = true;
+  if (!auth.user) await fetchUser?.();
+});
 
-// Populate form when user data becomes available
 watch(
-  () => authStore.user,
-  (newUser) => {
-    if (newUser) {
-      Object.assign(userForm, {
-        full_name: newUser.full_name,
-        username: newUser.username,
-        email: newUser.email,
-        phone_number: newUser.phone_number,
-        avatar: newUser.avatar,
-      });
-    }
+  () => auth.user,
+  (u) => {
+    if (u) Object.assign(userForm, u);
   },
   { immediate: true },
 );
+// simpler computed to detect changes
+const normalize = (v?: string | null) => (v ?? "").trim();
+
+const isFormChanged = computed(() => {
+  const u = auth.user;
+  if (!u) return false;
+
+  return (
+    normalize(userForm.full_name) !== normalize(u.full_name) ||
+    normalize(userForm.username) !== normalize(u.username) ||
+    normalize(userForm.phone_number) !== normalize(u.phone_number)
+  );
+});
 
 const updateProfile = async () => {
-  if (!authStore.user?.id) return;
+  if (!auth.user?.id || !isFormChanged.value) return;
 
   isLoading.value = true;
-  errorMessage.value = "";
-  successMessage.value = "";
+  successMessage.value = null;
+  errorMessage.value = null;
 
-  try {
-    const response = await api<components["schemas"]["UserInfoResponse"]>(
-      `/api/v1/user/update/${authStore.user.id}`,
-      {
-        method: "PUT",
-        body: userForm,
-      },
-    );
-    if (response) {
-      authStore.setUser(response.data);
-      successMessage.value = "Profile updated successfully!";
-    }
-  } catch (error: any) {
-    if (error.data && error.data.message) {
-      errorMessage.value = Array.isArray(error.data.message)
-        ? error.data.message.join(", ")
-        : error.data.message;
-    } else {
-      errorMessage.value = "An unexpected error occurred.";
-    }
-  } finally {
-    isLoading.value = false;
+  const { fetchUpdateUser, error } = await userApi.useFetchUpdateUser({
+    ...userForm,
+  });
+  await fetchUpdateUser();
+
+  if (!error.value) {
+    successMessage.value = "Profile updated successfully";
+  } else {
+    errorMessage.value = error.value.data?.message || "An error occurred";
   }
+  isLoading.value = false;
 };
 
-definePageMeta({
-  layout: "authenticated",
-});
+definePageMeta({ layout: "account" });
 </script>
+
+<template>
+  <Content :is-ready="isReady && Boolean(auth.user)">
+    <div
+      class="rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
+    >
+      <h3 class="text-lg font-medium leading-6">Update Profile</h3>
+
+      <form class="mt-6 space-y-6" @submit.prevent="updateProfile">
+        <div
+          v-if="errorMessage"
+          class="rounded-md bg-red-50 p-4 border border-red-200"
+        >
+          <p class="text-sm font-medium text-center text-red-800">
+            {{ errorMessage }}
+          </p>
+        </div>
+
+        <div
+          v-if="successMessage"
+          class="rounded-md bg-green-50 p-4 border border-green-200"
+        >
+          <p class="text-sm font-medium text-center text-green-800">
+            {{ successMessage }}
+          </p>
+        </div>
+
+        <FormInput
+          id="full_name"
+          v-model="userForm.full_name"
+          label="Full Name"
+          type="text"
+          required
+        />
+        <FormInput
+          id="username"
+          v-model="userForm.username"
+          label="Username"
+          type="text"
+          required
+        />
+        <FormInput
+          id="email"
+          v-model="userForm.email"
+          label="Email address"
+          type="email"
+          disabled
+        />
+        <FormInput
+          id="phone_number"
+          v-model="userForm.phone_number"
+          label="Phone Number"
+          type="text"
+        />
+
+        <div>
+          <button
+            type="submit"
+            :disabled="isLoading || !isFormChanged"
+            class="inline-flex items-center gap-2 rounded-lg border-l border-t border-white px-4 py-2 dark:bg-blue-700/80 text-white shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:shadow-[inset_-3px_-3px_0_var(--text-color),inset_3px_3px_0_#0b0d40] transition-all focus:outline-none hover:translate-x-[2px] hover:translate-y-[2px]"
+            :class="{
+              'opacity-50 cursor-not-allowed': isLoading || !isFormChanged,
+            }"
+          >
+            <svg
+              v-if="isLoading"
+              class="animate-spin -ml-1 mr-3 h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                class="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                stroke-width="4"
+              />
+              <path
+                class="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
+            {{ isLoading ? "Updating..." : "Update Profile" }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </Content>
+</template>

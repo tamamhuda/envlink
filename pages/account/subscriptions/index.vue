@@ -1,0 +1,181 @@
+<script setup lang="ts">
+import { definePageMeta, ref } from "#imports";
+import type { components } from "~/types/api.d";
+import Content from "~/components/Content.vue";
+import { CheckCircle, XCircle } from "lucide-vue-next";
+
+definePageMeta({
+  layout: "account",
+});
+
+type Subscription = components["schemas"]["SubscriptionInfoResponse"]["data"];
+
+// Dummy data based on the API type
+const currentSubscription = ref<Subscription>({
+  id: "sub_12345",
+  plan: {
+    name: "Pro",
+    price: 15,
+    limit: 1000,
+    cost: 15,
+    reset_interval: "MONTHLY",
+    charge_on_success: false,
+    description: "Pro plan with more features",
+  },
+  status: "ACTIVE",
+  started_at: new Date("2023-01-01").toISOString(),
+  expires_at: new Date("2024-01-01").toISOString(),
+  user_id: "user_123",
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  reference_id: "ref_123",
+  external_id: "ext_123",
+  remaining: 500,
+  is_trial: false,
+  schedule: null,
+  metadata: null,
+  transaction_status: "PAID",
+  next_billing_date: new Date("2024-01-01").toISOString(),
+});
+
+const pastSubscriptions = ref<Partial<Subscription>[]>([
+  {
+    id: "sub_67890",
+    plan: { name: "Free" },
+    status: "EXPIRED",
+    started_at: new Date("2022-12-01").toISOString(),
+    expires_at: new Date("2022-12-31").toISOString(),
+  },
+  {
+    id: "sub_abcde",
+    plan: { name: "Pro" },
+    status: "CANCELED",
+    started_at: new Date("2022-11-01").toISOString(),
+    expires_at: new Date("2022-11-30").toISOString(),
+  },
+]);
+
+const formatDate = (date: string | Date) => {
+  if (!date) return "N/A";
+  return new Date(date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
+</script>
+
+<template>
+  <Content :is-ready="Boolean(currentSubscription)">
+    <div class="space-y-8">
+      <!-- Current Subscription -->
+      <div
+        class="rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
+      >
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-lg font-semibold leading-6">My Subscription</h3>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Manage your subscription plan and billing details.
+            </p>
+          </div>
+          <NuxtLink
+            to="/account/subscriptions/upgrade"
+            class="inline-flex items-center gap-2 rounded-lg border-l border-t border-white px-4 py-2 dark:bg-blue-700/80 text-white shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:shadow-[inset_-3px_-3px_0_var(--text-color),inset_3px_3px_0_#0b0d40] transition-all focus:outline-none hover:translate-x-[2px] hover:translate-y-[2px] whitespace-pre"
+          >
+            Upgrade Plan
+          </NuxtLink>
+        </div>
+
+        <div
+          v-if="currentSubscription"
+          class="mt-6 border-t border-[var(--border-color)] pt-6"
+        >
+          <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
+            <div class="sm:col-span-1">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Plan
+              </dt>
+              <dd class="mt-1 text-lg font-semibold">
+                {{ currentSubscription.plan.name }}
+              </dd>
+            </div>
+            <div class="sm:col-span-1">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Status
+              </dt>
+              <dd
+                class="mt-1 text-lg font-semibold capitalize"
+                :class="{
+                  'text-green-600': currentSubscription.status === 'ACTIVE',
+                  'text-red-600': currentSubscription.status !== 'ACTIVE',
+                }"
+              >
+                {{ currentSubscription.status.toLowerCase() }}
+              </dd>
+            </div>
+            <div class="sm:col-span-1">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Price
+              </dt>
+              <dd class="mt-1 text-lg">
+                ${{ currentSubscription.plan.price }} / month
+              </dd>
+            </div>
+            <div class="sm:col-span-1">
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">
+                Next Billing Date
+              </dt>
+              <dd class="mt-1 text-lg">
+                {{ formatDate(currentSubscription.next_billing_date) }}
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <!-- Past Subscriptions -->
+      <div
+        class="rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
+      >
+        <h3 class="text-lg font-semibold leading-6">Subscription History</h3>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Your previous subscription records.
+        </p>
+        <div class="mt-6 flow-root">
+          <ul role="list" class="space-y-4">
+            <li
+              v-for="sub in pastSubscriptions"
+              :key="sub.id"
+              class="relative flex items-center justify-between px-5 py-4 border border-[var(--text-color)] rounded-md bg-transparent text-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)]"
+            >
+              <div class="flex items-center flex-1 min-w-0">
+                <div class="mr-4">
+                  <CheckCircle
+                    v-if="sub.status === 'ACTIVE'"
+                    class="h-6 w-6 text-green-500"
+                  />
+                  <XCircle v-else class="h-6 w-6 text-red-500" />
+                </div>
+                <div class="ml-4 flex-1 min-w-0">
+                  <p class="text-sm font-medium">{{ sub.plan.name }} Plan</p>
+                  <p class="text-xs opacity-60 mt-0.5">
+                    {{ formatDate(sub.started_at) }} -
+                    {{ formatDate(sub.expires_at) }}
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 ml-4">
+                <span
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-[var(--text-color)] capitalize"
+                >
+                  {{ sub.status.toLowerCase() }}
+                </span>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </Content>
+</template>

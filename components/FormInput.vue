@@ -12,8 +12,9 @@
       <input
         :id="id"
         :type="type"
-        :value="modelValue"
+        :value="modelValue ?? ''"
         :placeholder="placeholder"
+        :disabled="disabled"
         :required="required"
         class="flex-1 rounded-md border border-[var(--border-color)] bg-[var(--bg-color)] px-3 py-2 placeholder-gray-400 shadow-[2px_2px_0_var(--border-color)] focus:border-[var(--text-color)] focus:ring-[var(--text-color)] focus:ring-2 focus:outline-none sm:text-sm text-[var(--text-color)] transition-colors"
         @input="
@@ -31,10 +32,11 @@ interface Props {
   id: string;
   label: string;
   type?: string;
-  modelValue: string;
+  modelValue?: string | null;
   placeholder?: string;
   required?: boolean;
   error?: string;
+  disabled?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -42,6 +44,8 @@ withDefaults(defineProps<Props>(), {
   placeholder: "",
   required: false,
   error: "",
+  modelValue: "",
+  disabled: false,
 });
 
 defineEmits(["update:modelValue"]);

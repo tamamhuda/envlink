@@ -1,6 +1,6 @@
 <template>
   <div
-    class="absolute w-full h-full inset-0 text-center min-h-full flex flex-col flex-1 items-center justify-center"
+    class="w-full h-full inset-0 text-center min-h-full flex flex-col flex-1 items-center justify-center"
   >
     <div class="flex items-center justify-center space-x-2">
       <div

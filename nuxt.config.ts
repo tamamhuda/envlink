@@ -40,6 +40,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.ENVLINK_API_URL || "http://localhost:3000",
+      appUrl: process.env.APP_URL || "http://localhost:4000",
     },
   },
 });

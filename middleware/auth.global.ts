@@ -1,10 +1,8 @@
-import { computed, useAuthStore } from "#imports";
+import { computed, useAuthStore, useSubscriptionStore } from "#imports";
 import { defineNuxtRouteMiddleware, navigateTo } from "nuxt/app";
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore();
-
-  // Wait for initialization
 
   const publicRoutes = [
     "/login",
@@ -18,7 +16,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const isPublic = publicRoutes.some((route) => to.path.startsWith(route));
   const isPrivate = privateRoutes.some((route) => to.path.startsWith(route));
   const hasCookie = auth.hasCookie();
-  const isVerified = computed(() => auth.user?.providers.is_verified);
+  const isVerified = computed(() => auth.user?.providers.isVerified);
 
   // In your route middleware or entry logic
   if (!hasCookie && !isPublic) {

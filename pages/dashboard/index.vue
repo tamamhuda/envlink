@@ -186,7 +186,7 @@ const toggleAdvancedOptions = () => {
 
 <template>
   <Content :is-ready="true">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
       <!-- Left Column -->
       <div class="lg:col-span-2 space-y-8">
         <!-- Shorten Form -->
@@ -195,7 +195,7 @@ const toggleAdvancedOptions = () => {
         >
           <h1 class="text-2xl font-semibold mb-6">Shorten a new link</h1>
 
-          <form @submit.prevent="shortenUrl" class="space-y-4">
+          <form class="space-y-4" @submit.prevent="shortenUrl">
             <!-- URL Input -->
             <div class="relative group">
               <Link
@@ -212,9 +212,9 @@ const toggleAdvancedOptions = () => {
 
             <!-- Advanced Options Toggle -->
             <button
-              @click="toggleAdvancedOptions"
-              type="button"
               class="w-full inline-flex items-center justify-center gap-2 text-sm font-medium hover:opacity-80 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+              type="button"
+              @click="toggleAdvancedOptions"
             >
               <Settings2 class="w-4 h-4" />
               <span>Advanced Options</span>
@@ -349,9 +349,9 @@ const toggleAdvancedOptions = () => {
                           >
                             {{ channel.name }}
                             <button
-                              @click.stop="removeChannel(channel.id)"
                               type="button"
                               class="hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+                              @click.stop="removeChannel(channel.id)"
                             >
                               <X class="w-3.5 h-3.5" />
                             </button>
@@ -359,10 +359,10 @@ const toggleAdvancedOptions = () => {
 
                           <!-- Input Field -->
                           <input
+                            v-model="multiselectInput"
                             type="text"
                             placeholder="Select or create channels"
                             class="flex-1 w-full min-w-[120px] bg-transparent border-none outline-none text-sm"
-                            :v-model="multiselectInput"
                             @focus="multiselectOpen = true"
                           />
 
@@ -392,7 +392,6 @@ const toggleAdvancedOptions = () => {
                             <button
                               v-for="channel in filteredChannels"
                               :key="channel.id"
-                              @click.stop="toggleOption(channel)"
                               type="button"
                               class="w-full flex items-center justify-between px-4 py-2.5 text-sm text-left hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
                               :class="{
@@ -401,6 +400,7 @@ const toggleAdvancedOptions = () => {
                                     (c) => c.id === channel.id,
                                   ),
                               }"
+                              @click.stop="toggleOption(channel)"
                             >
                               <span>{{ channel.name }}</span>
                               <span
@@ -427,9 +427,9 @@ const toggleAdvancedOptions = () => {
                           <!-- Create New Option -->
                           <button
                             v-if="showCreateOption"
-                            @click.stop="createChannel"
                             type="button"
                             class="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-left bg-blue-50/50 dark:bg-blue-900/10 hover:bg-blue-100 dark:hover:bg-blue-900/20 border-t-2 border-[var(--border-color)] transition-colors font-medium text-blue-600 dark:text-blue-400"
+                            @click.stop="createChannel"
                           >
                             <span class="text-lg">+</span>
                             <span>Create "{{ multiselectInput }}"</span>

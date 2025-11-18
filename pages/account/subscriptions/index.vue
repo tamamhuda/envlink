@@ -1,42 +1,25 @@
 <script setup lang="ts">
-import { definePageMeta, ref } from "#imports";
+import {
+  computed,
+  definePageMeta,
+  ref,
+  useSubscriptionApi,
+  useSubscriptionStore,
+} from "#imports";
 import type { components } from "~/types/api.d";
 import Content from "~/components/Content.vue";
 import { CheckCircle, XCircle } from "lucide-vue-next";
+import type { Subscription } from "~/interfaces/api.interface";
 
 definePageMeta({
   layout: "account",
 });
 
-type Subscription = components["schemas"]["SubscriptionInfoResponse"]["data"];
+const subscription = useSubscriptionStore();
+// const subscriptionApi = useSubscriptionApi();
 
 // Dummy data based on the API type
-const currentSubscription = ref<Subscription>({
-  id: "sub_12345",
-  plan: {
-    name: "Pro",
-    price: 15,
-    limit: 1000,
-    cost: 15,
-    reset_interval: "MONTHLY",
-    charge_on_success: false,
-    description: "Pro plan with more features",
-  },
-  status: "ACTIVE",
-  started_at: new Date("2023-01-01").toISOString(),
-  expires_at: new Date("2024-01-01").toISOString(),
-  user_id: "user_123",
-  created_at: new Date().toISOString(),
-  updated_at: new Date().toISOString(),
-  reference_id: "ref_123",
-  external_id: "ext_123",
-  remaining: 500,
-  is_trial: false,
-  schedule: null,
-  metadata: null,
-  transaction_status: "PAID",
-  next_billing_date: new Date("2024-01-01").toISOString(),
-});
+const currentSubscription = computed(() => subscription.activeSubscription);
 
 const pastSubscriptions = ref<Partial<Subscription>[]>([
   {

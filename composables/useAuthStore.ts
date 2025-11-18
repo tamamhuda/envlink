@@ -1,12 +1,25 @@
-import { useAccountApi, useAuthCookie, useUserApi } from "#imports";
-import { navigateTo } from "nuxt/app";
+import { useAuthCookie, useSubscriptionApi, useUserApi } from "#imports";
 import { defineStore } from "pinia";
-import type { Tokens, User } from "~/interfaces/api.interface";
+import {
+  TokensFromJSON,
+  TokensToJSON,
+  type SubscriptionInfo,
+  type Tokens,
+  type UserInfo,
+} from "~/client";
+
+type AuthState = {
+  user: UserInfo | null;
+  tokens: Tokens | null;
+  activeSubscriptions: SubscriptionInfo | null;
+  initialized: boolean;
+};
 
 export const useAuthStore = defineStore("auth", {
-  state: () => ({
-    user: null as User | null,
-    tokens: null as Tokens | null,
+  state: (): AuthState => ({
+    user: null,
+    tokens: null,
+    activeSubscriptions: null,
     initialized: false,
   }),
 
@@ -15,16 +28,20 @@ export const useAuthStore = defineStore("auth", {
   },
 
   actions: {
-    setUser(user: User) {
+    setUser(user: UserInfo) {
       this.user = user;
+    },
+
+    setSubscription(subscription: SubscriptionInfo) {
+      this.activeSubscriptions = subscription;
     },
 
     setTokens(tokens: Tokens) {
       this.tokens = tokens;
       if (import.meta.client) {
         const cookie = useAuthCookie();
-
-        cookie.value = JSON.stringify(tokens);
+        console.log("Setting tokens in cookie", tokens);
+        cookie.value = JSON.stringify(TokensToJSON(tokens));
       }
     },
 
@@ -49,7 +66,7 @@ export const useAuthStore = defineStore("auth", {
       }
 
       try {
-        this.tokens = JSON.parse(cookie.value);
+        this.tokens = TokensFromJSON(JSON.parse(cookie.value));
       } catch {
         console.warn("Invalid auth cookie, clearing it.");
         this.tokens = null;
@@ -64,18 +81,18 @@ export const useAuthStore = defineStore("auth", {
 
       await this.bootstrapTokens();
       if (!this.tokens) return;
+      const { getUserInfo } = useUserApi().getInfo();
+      const { getActiveSubscription } = useSubscriptionApi().getActive();
 
-      const userApi = useUserApi();
-      const { fetchUser } = await userApi.useFetchUser();
-      await fetchUser();
+      await getUserInfo();
+      await getActiveSubscription();
       this.initialized = true;
-      console.log("User initialized");
     },
 
-    async logout({ redirect = true } = {}) {
-      if (!this.tokens) return;
-      this.clearAuth();
-      if (redirect) await navigateTo("/login");
-    },
+    // async logout({ redirect = true } = {}) {
+    //   if (!this.tokens) return;
+    //   this.clearAuth();
+    //   if (redirect) await navigateTo("/login");
+    // },
   },
 });

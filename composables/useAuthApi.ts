@@ -1,96 +1,71 @@
-import { navigateTo, useApi, useAuthStore } from "#imports";
-import type {
-  AuthResponse,
-  ErrorResponse,
-  LoginRequest,
-  RegisterRequest,
-  UserResponse,
-} from "~/interfaces/api.interface";
+import { navigateTo, useAuthStore, useEnvlink } from "#imports";
+import type { LoginRequest, RegisterRequest, UserInfo } from "~/client";
 
-export function useAuthApi() {
-  const auth = useAuthStore();
+export const useAuthApi = () => {
+  const envlink = useEnvlink();
+  const authStore = useAuthStore();
 
-  const setUser = (user: any) => {
-    auth.setUser(user);
-  };
-
-  const setTokens = (tokens: any) => {
-    auth.setTokens(tokens);
+  const setUser = (user: UserInfo) => {
+    authStore.setUser(user);
   };
 
   const setInitialized = (initialized: boolean) => {
-    auth.initialized = initialized;
+    authStore.initialized = initialized;
   };
 
-  const useFetchLogin = async (body: LoginRequest) => {
-    const { refresh, pending, error } = await useApi<
-      AuthResponse,
-      ErrorResponse
-    >("/api/v1/auth/login", {
-      method: "POST",
-      body,
-      immediate: false,
-      onResponse: async ({ response }) => {
-        if (response.status === 200 && response._data) {
-          const { tokens, user } = response._data.data;
-          setTokens(tokens);
-          setUser(user);
-          setInitialized(true);
-          await navigateTo("/dashboard");
-        }
-      },
-    });
+  const login = () => {
+    const { execute, response, ...rest } = envlink.authentication.login();
 
-    return { login: refresh, pending, error };
+    const login = async (body: LoginRequest) => {
+      await execute({
+        loginRequest: body,
+      });
+      if (response.value) {
+        const { user } = response.value.data;
+        setUser(user);
+        authStore.initialized = true;
+        await navigateTo("/dashboard");
+      }
+    };
+
+    return { login, response, ...rest };
   };
 
-  const useFetchRegister = async (body: RegisterRequest) => {
-    const { refresh, pending, error } = await useApi<
-      AuthResponse,
-      ErrorResponse
-    >("/api/v1/auth/register", {
-      method: "POST",
-      body,
-      immediate: false,
-      onResponse: async ({ response }) => {
-        if (response.status === 201 && response._data) {
-          const { tokens, user } = response._data.data;
-          setTokens(tokens);
-          setUser(user);
-          await navigateTo({
-            path: "/auth/verify",
-            query: { from: "register" },
-          });
-        }
-      },
-    });
+  const register = () => {
+    const { execute, response, ...rest } = envlink.authentication.register();
 
-    return { register: refresh, pending, error };
+    const register = async (body: RegisterRequest) => {
+      await execute({
+        registerRequest: body,
+      });
+      if (response.value) {
+        const { user } = response.value.data;
+        setUser(user);
+        setInitialized(true);
+        await navigateTo("/dashboard");
+      }
+    };
+
+    return { register, response, ...rest };
   };
 
-  const useFetchVerify = async (token: string) => {
-    const { execute, data, pending, error } = await useApi<
-      UserResponse,
-      ErrorResponse
-    >("/api/v1/auth/verify", {
-      method: "GET",
-      immediate: false,
-      query: {
-        token,
-      },
-      onResponse: ({ response }) => {
-        if (response._data?.data) {
-          setUser(response._data.data);
-        }
-      },
-    });
+  const verify = () => {
+    const { execute, response, ...rest } = envlink.authentication.verify();
 
-    return { fetchVerify: execute, data, pending, error };
+    const verify = async (token: string) => {
+      await execute({ token });
+      if (response.value) {
+        const user = response.value?.data;
+        setUser(user);
+      }
+    };
+
+    return { verify, response, ...rest };
   };
 
   return {
-    useFetchLogin,
-    useFetchRegister,
-    useFetchVerify,
+    login,
+    register,
+    verify,
   };
-}
+};

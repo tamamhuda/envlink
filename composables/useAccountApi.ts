@@ -1,72 +1,56 @@
-import { navigateTo, useApi, useAuthStore } from "#imports";
-import type {
-  ChangePasswordRequest,
-  ErrorResponse,
-  UserResponse,
-} from "~/interfaces/api.interface";
+import { navigateTo, useAuthStore, useEnvlink } from "#imports";
+import type { ChangePasswordRequest } from "~/client";
 
 export function useAccountApi() {
   const authStore = useAuthStore();
+  const envlink = useEnvlink();
 
   const clearAuth = () => {
     authStore.clearAuth();
   };
 
-  const useFetchResendVerify = async () => {
-    const { execute, data, pending, error } = await useApi<
-      string,
-      ErrorResponse
-    >(
-      "/api/v1/account/verify/resend",
-      {
-        method: "POST",
-        immediate: false,
-      },
-      true,
-    );
+  const verifyResend = async () => {
+    const { execute, response, pending, error } =
+      envlink.account.verifyResend();
 
-    return { fetchResendVerify: execute, data, pending, error };
+    const resendVerification = async () => {
+      await execute({
+        xClientUrl: "http://localhost:4000",
+      });
+    };
+
+    return { resendVerification, response, pending, error };
   };
 
-  const useFetchLogout = async () => {
-    const { execute, data, pending, error } = await useApi<null, ErrorResponse>(
-      "/api/v1/account/logout",
-      {
-        method: "POST",
-        immediate: false,
-        onResponse: ({ response }) => {
-          if (response.status === 204) {
-            clearAuth();
-            navigateTo("/login");
-          }
-        },
-      },
-      true,
-    );
+  const logout = async () => {
+    const { execute, error, response, ...rest } = envlink.account.logout();
 
-    return { fetchLogout: execute, data, pending, error };
+    const logout = async () => {
+      await execute();
+      if (!error.value) {
+        clearAuth();
+        navigateTo("/login");
+      }
+    };
+
+    return { logout, ...rest };
   };
 
-  const useFetchChangePassword = async (body: ChangePasswordRequest) => {
-    const { execute, data, pending, error } = await useApi<
-      UserResponse,
-      ErrorResponse
-    >(
-      "/api/v1/account/change-password",
-      {
-        method: "POST",
-        immediate: false,
-        body,
-      },
-      true,
-    );
+  const changePassword = async () => {
+    const { execute, ...rest } = envlink.account.changePassword();
 
-    return { fetchChangePassword: execute, data, pending, error };
+    const changePassword = async (body: ChangePasswordRequest) => {
+      await execute({
+        changePasswordRequest: body,
+      });
+    };
+
+    return { changePassword, ...rest };
   };
 
   return {
-    useFetchResendVerify,
-    useFetchLogout,
-    useFetchChangePassword,
+    verifyResend,
+    logout,
+    changePassword,
   };
 }

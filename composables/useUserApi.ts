@@ -1,59 +1,54 @@
-import { useApi, useAuthStore } from "#imports";
-import type {
-  ErrorResponse,
-  UpdateUserRequest,
-  UserResponse,
-} from "~/interfaces/api.interface";
+import { useAuthStore, useEnvlink } from "#imports";
+import type { UpdateUserRequest, UserInfo } from "~/client";
 
 export function useUserApi() {
-  const auth = useAuthStore();
+  const authStore = useAuthStore();
+  const envlink = useEnvlink();
 
-  const setUser = (user: any) => {
-    auth.setUser(user);
+  const setUser = (user: UserInfo) => {
+    authStore.setUser(user);
   };
 
-  const getUser = () => auth.user;
+  const update = () => {
+    const { execute, response, ...rest } = envlink.user.update();
 
-  const useFetchUpdateUser = async (body: UpdateUserRequest) => {
-    const id = getUser()?.id;
-    const { execute, error } = await useApi<UserResponse, ErrorResponse>(
-      `/api/v1/user/${id}`,
-      {
-        method: "PATCH",
-        immediate: false,
-        body,
-        onResponse: ({ response }) => {
-          if (response._data?.data) {
-            auth.setUser(response._data.data);
-          }
-        },
-      },
-      true,
-    );
+    const updateUser = async (updateUserRequest: UpdateUserRequest) => {
+      const id = authStore.user?.id;
+      if (!id) return;
+      await execute({ id, updateUserRequest });
+      if (response.value) {
+        setUser(response.value.data);
+      }
+    };
 
-    return { fetchUpdateUser: execute, error };
+    return { updateUser, response, ...rest };
   };
 
-  const useFetchUser = async () => {
-    const { execute, data, pending, error } = await useApi<
-      UserResponse,
-      ErrorResponse
-    >(
-      "/api/v1/user/me",
-      {
-        method: "GET",
-        immediate: false,
-        onResponse: ({ response }) => {
-          if (response.status === 200 && response._data) {
-            setUser(response._data.data);
-          }
-        },
-      },
-      true,
-    );
+  const getInfo = () => {
+    const { execute, response, ...rest } = envlink.user.getInfo();
 
-    return { fetchUser: execute, data, pending, error };
+    const getUserInfo = async () => {
+      await execute();
+      if (response.value) {
+        setUser(response.value.data);
+      }
+    };
+
+    return { getUserInfo, response, ...rest };
   };
 
-  return { useFetchUser, useFetchUpdateUser };
+  const uploadAvatar = () => {
+    const { execute, response, ...rest } = envlink.user.uploadAvatar();
+
+    const uploadUserAvatar = async (file: File) => {
+      await execute({ file });
+      if (response.value) {
+        setUser(response.value.data);
+      }
+    };
+
+    return { uploadUserAvatar, ...rest };
+  };
+
+  return { update, getInfo, uploadAvatar };
 }

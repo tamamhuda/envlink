@@ -16,7 +16,7 @@ const { toggle: toggleSidebar } = useSidebar();
 const isClientOnly = ref(false);
 const auth = useAuthStore();
 const accountApi = useAccountApi();
-const { fetchLogout } = await accountApi.useFetchLogout();
+const { logout } = await accountApi.logout();
 const { user } = auth;
 const year = new Date().getFullYear();
 const route = useRoute();
@@ -26,11 +26,11 @@ const isDropdownOpen = ref(false);
 const isNotifOpen = ref(false);
 const dropdownRef = ref<HTMLElement | null>(null);
 const notifRef = ref<HTMLElement | null>(null);
-const isVerified = computed(() => user?.providers.is_verified || false);
+const isVerified = computed(() => user?.providers.isVerified || false);
 const isAuthenticated = computed(() => auth.isAuthenticated);
 
-const isUpgradePage = computed(
-  () => route.path === "/account/subscriptions/upgrade",
+const isUpgradePage = computed(() =>
+  route.path.includes("/account/subscriptions/upgrade"),
 );
 
 // Mock notifications
@@ -55,7 +55,7 @@ const toggleNotifications = () => {
 
 const handleLogout = async () => {
   closeDropdown();
-  await fetchLogout();
+  await logout();
 };
 
 const getInitials = (name: string) =>
@@ -91,23 +91,21 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="flex flex-col min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] transition-colors duration-300"
+    class="flex flex-col relative min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] transition-colors duration-300"
   >
     <!-- Header -->
     <header
-      class="flex items-center justify-between px-6 sm:px-8 py-4 border-b border-[var(--border-color)] max-w-full mx-auto w-full"
+      class="flex items-center sticky top-0 justify-between px-6 sm:px-8 py-4 border-b border-[var(--border-color)] max-w-full mx-auto w-full bg-[var(--bg-color)] z-[50]"
     >
       <button
-        v-if="!isUpgradePage"
-        class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800/50 md:hidden"
+        class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800/50"
+        :class="{ 'lg:hidden': !isUpgradePage }"
         @click="toggleSidebar"
       >
         <Menu class="w-6 h-6" />
       </button>
       <!-- Brand -->
-      <div
-        class="flex-1 md:flex-none md:justify-center md:w-72 flex justify-center items-center"
-      >
+      <div class="flex-1 justify-start flex pl-2">
         <NuxtLink to="/dashboard" class="rounded-md font-medium">
           <h1
             class="text-xl font-semibold tracking-tight text-[var(--text-color)]"
@@ -215,9 +213,9 @@ onUnmounted(() => {
             @click="toggleDropdown"
           >
             <img
-              v-if="user?.avatar"
+              v-if="isClientOnly && user?.avatar"
               :src="user.avatar"
-              :alt="user.full_name || user.username"
+              :alt="user.fullName || user.username"
               class="w-8 h-8 rounded-full object-cover border border-[var(--border-color)]"
             />
             <div
@@ -225,7 +223,7 @@ onUnmounted(() => {
               class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium"
             >
               <div v-if="user && isClientOnly">
-                {{ getInitials(user.full_name || user.username) }}
+                {{ getInitials(user.fullName || user.username) }}
               </div>
               <div v-else>U</div>
             </div>
@@ -248,7 +246,7 @@ onUnmounted(() => {
                 class="px-4 py-3 border-b border-[var(--border-color)]"
               >
                 <p class="text-sm font-medium">
-                  {{ user?.full_name || user?.username }}
+                  {{ user?.fullName || user?.username }}
                 </p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   {{ user?.email }}
@@ -277,7 +275,7 @@ onUnmounted(() => {
 
               <NuxtLink
                 v-if="isVerified"
-                to="/account/subscriptions/manage"
+                to="/account/subscriptions"
                 class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
                 @click="closeDropdown"
               >

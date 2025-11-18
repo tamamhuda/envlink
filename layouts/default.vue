@@ -184,13 +184,13 @@
             <!-- CTA Button -->
             <div class="pt-0">
               <button
-                @click="handlePrimaryAction"
                 class="w-full inline-flex items-center justify-center gap-2 rounded-lg border-l border-t border-white px-4 py-3 text-base font-semibold shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:shadow-[inset_-3px_-3px_0_var(--text-color),inset_3px_3px_0_#0b0d40] transition-all focus:outline-none hover:translate-x-[2px] hover:translate-y-[2px]"
                 :class="[
                   plan.popular
                     ? 'bg-blue-700/80 text-white'
                     : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200',
                 ]"
+                @click="handlePrimaryAction"
               >
                 {{ plan.cta }}
               </button>
@@ -276,7 +276,7 @@ const plans = ref([
 
 const authStore = useAuthStore();
 // const { fetchUser } = await authStore.useFetchUser();
-const { fetchUser } = await useUserApi().useFetchUser();
+const { getUserInfo } = useUserApi().getInfo();
 const router = useRouter();
 const route = useRoute();
 const hasCookie = computed(() => authStore.hasCookie());
@@ -356,7 +356,7 @@ watch(
 
 watch(hasCookie, async () => {
   if (isClientOnly.value) {
-    await fetchUser();
+    await getUserInfo();
   }
 });
 

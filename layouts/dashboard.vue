@@ -4,8 +4,8 @@
       <!-- Sidebar -->
       <aside
         :class="[
-          'fixed inset-y-20 md:inset-10 left-0 z-40 p-4 w-72  md:relative md:z-auto md:translate-x-0',
-          'flex-shrink-0 overflow-y-auto   transition-transform duration-300 ease-in-out',
+          'fixed inset-y-20 lg:inset-10 left-0 z-40 p-4 w-72  lg:relative lg:z-auto lg:translate-x-0',
+          'flex-shrink-0 overflow-y-auto  transition-transform duration-300 ease-in-out',
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
         ]"
         role="navigation"
@@ -16,7 +16,7 @@
             class="flex-1 py-6 space-y-2 shadow-[4px_4px_0_var(--text-color)] sm:rounded-lg px-5 border border-[var(--text-color)] bg-[var(--bg-color)] transition-colors"
           >
             <NuxtLink
-              v-for="item in dashboardMenu"
+              v-for="item in dashboardMenu.filter((i) => !i.hide)"
               :key="item.name"
               :to="item.href"
               class="flex items-center flex-1 px-4 py-2.5 text-sm font-medium rounded-lg transition-all"

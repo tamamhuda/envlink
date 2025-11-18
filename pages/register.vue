@@ -50,10 +50,11 @@
                 </p>
               </div>
               <FormInput
-                id="full_name"
-                v-model="registrationForm.full_name"
+                id="fullName"
+                v-model="registrationForm.fullName"
                 label="Full Name"
                 type="text"
+                :icon="User"
                 required
               />
 
@@ -62,6 +63,7 @@
                 v-model="registrationForm.username"
                 label="Username"
                 type="text"
+                :icon="AtSign"
                 required
               />
 
@@ -70,6 +72,7 @@
                 v-model="registrationForm.email"
                 label="Email address"
                 type="email"
+                :icon="Mail"
                 required
               />
 
@@ -78,14 +81,16 @@
                 v-model="registrationForm.password"
                 label="Password"
                 type="password"
+                :icon="Lock"
                 required
               />
 
               <FormInput
-                id="confirm_password"
-                v-model="registrationForm.confirm_password"
+                id="confirmPassword"
+                v-model="registrationForm.confirmPassword"
                 label="Confirm Password"
                 type="password"
+                :icon="Lock"
                 required
               />
 
@@ -159,30 +164,30 @@
 <script setup lang="ts">
 import { definePageMeta, useAuthApi } from "#imports";
 import { reactive, ref } from "vue";
-import type { components } from "~/types/api";
+import { User, AtSign, Mail, Lock } from "lucide-vue-next";
+import {
+  instanceOfErrorResponse,
+  type RegisterRequest,
+} from "~/client/src/generated";
 
-const authApi = useAuthApi();
+const auth = useAuthApi();
 const errorMessage = ref<string | null>(null);
 
-const registrationForm = reactive<components["schemas"]["RegisterBodyDto"]>({
-  full_name: "",
+const registrationForm = reactive<RegisterRequest>({
+  fullName: "",
   username: "",
   email: "",
   password: "",
-  confirm_password: "",
+  confirmPassword: "",
 });
 
-const {
-  register,
-  pending: isLoading,
-  error,
-} = await authApi.useFetchRegister(registrationForm);
+const { register, pending: isLoading, error } = auth.register();
 
 const handleRegister = async () => {
   errorMessage.value = null;
-  await register();
-  if (error.value?.data) {
-    errorMessage.value = error.value.data?.message || "An error occurred";
+  await register(registrationForm);
+  if (error.value && instanceOfErrorResponse(error.value)) {
+    errorMessage.value = error.value.message || "An error occurred";
   }
 };
 

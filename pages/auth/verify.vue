@@ -3,14 +3,15 @@ import { ref, computed, onMounted } from "vue";
 import { navigateTo, useRoute } from "#app";
 import {
   useAccountApi,
-  useAuthApi,
   useAuthStore,
   definePageMeta,
+  useAuthApi,
 } from "#imports";
 
 // Layouts
 import AuthenticatedLayout from "~/layouts/authenticated.vue";
 import EmptyLayout from "~/layouts/empty.vue";
+import { instanceOfErrorResponse } from "~/client/src/generated";
 
 definePageMeta({ layout: "empty" });
 
@@ -33,24 +34,20 @@ const message = ref<{ text: string; type: "success" | "error" | null }>({
 // Derived state
 const token = computed(() => String(route.query.token || "") || undefined);
 const fromRegister = computed(
-  () => route.query.from === "register" && user.value?.last_login_at == null,
+  () => route.query.from === "register" && user.value?.lastLoginAt == null,
 );
 const isRequestVerify = computed(() => !!token.value);
 const isAuthenticated = computed(() => auth.isAuthenticated);
-const isVerified = computed(() => user.value?.providers.is_verified || false);
+const isVerified = computed(() => user.value?.providers.isVerified || false);
 
 // API handlers
-const {
-  fetchVerify,
-  error: errorVerify,
-  pending: pendingVerify,
-} = await authApi.useFetchVerify(token.value as string);
+const { verify, error: errorVerify, pending: pendingVerify } = authApi.verify();
 
 const {
-  fetchResendVerify,
+  resendVerification,
   error: errorResend,
   pending: pendingResend,
-} = await accountApi.useFetchResendVerify();
+} = await accountApi.verifyResend();
 
 const isResending = computed(() => pendingResend.value);
 const isResendDisabled = computed(() => {
@@ -73,13 +70,11 @@ const pageDescription = computed(() =>
 async function handleResend() {
   if (isResendDisabled.value || isResending.value) return;
   message.value = { text: "", type: null };
-  await fetchResendVerify();
+  await resendVerification();
 
-  if (errorResend.value) {
+  if (errorResend.value && instanceOfErrorResponse(errorResend.value)) {
     message.value = {
-      text:
-        errorResend.value.data?.message ||
-        "Failed to resend verification email.",
+      text: errorResend.value.message || "Failed to resend verification email.",
       type: "error",
     };
     return;
@@ -105,11 +100,11 @@ onMounted(async () => {
   }
 
   // Handle token verification
-  if (isRequestVerify.value) {
-    await fetchVerify();
+  if (isRequestVerify.value && token.value) {
+    await verify(token.value);
 
-    if (errorVerify.value) {
-      const status = errorVerify.value.data?.status;
+    if (errorVerify.value && instanceOfErrorResponse(errorVerify.value)) {
+      const status = errorVerify.value.status;
 
       if (status === 403) {
         message.value = {
@@ -119,27 +114,26 @@ onMounted(async () => {
           type: "error",
         };
       } else if (status === 409) {
-        // Already verified
         message.value = {
           text: "Your account is already verified.",
           type: "success",
         };
-      } else {
-        message.value = {
-          text: "Verification failed. Please try again later.",
-          type: "error",
-        };
       }
-
-      isClientReady.value = true;
-      return;
+    } else {
+      message.value = {
+        text: "Verification failed. Please try again later.",
+        type: "error",
+      };
     }
 
-    message.value = {
-      text: "Your account has been successfully verified.",
-      type: "success",
-    };
+    isClientReady.value = true;
+    return;
   }
+
+  message.value = {
+    text: "Your account has been successfully verified.",
+    type: "success",
+  };
 
   // Redirect unauthenticated users if no verification token
   if (!isAuthenticated.value && !isRequestVerify.value) {
@@ -197,15 +191,15 @@ onMounted(async () => {
             >
               <button
                 v-if="isAuthenticated"
-                @click="navigateTo('/dashboard')"
                 class="rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all"
+                @click="navigateTo('/dashboard')"
               >
                 Go to Dashboard
               </button>
               <button
                 v-else
-                @click="handleLoginRedirect"
                 class="rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all"
+                @click="handleLoginRedirect"
               >
                 Go to Login
               </button>
@@ -215,7 +209,6 @@ onMounted(async () => {
             <div v-else-if="message.type === 'error' && isAuthenticated">
               <button
                 :disabled="isResendDisabled || isResending"
-                @click="handleResend"
                 class="mt-4 rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] transition-all"
                 :class="{
                   'opacity-50 cursor-not-allowed':
@@ -223,6 +216,7 @@ onMounted(async () => {
                   'hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)]':
                     !isResendDisabled && !isResending,
                 }"
+                @click="handleResend"
               >
                 <svg
                   v-if="isResending"
@@ -252,8 +246,8 @@ onMounted(async () => {
             <!-- Error + unauthenticated -->
             <div v-else-if="message.type === 'error' && !isAuthenticated">
               <button
-                @click="handleLoginRedirect"
                 class="mt-4 rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all"
+                @click="handleLoginRedirect"
               >
                 Go to Login
               </button>

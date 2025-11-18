@@ -33,6 +33,7 @@
               v-model="credentials.username"
               label="Username"
               type="text"
+              :icon="User"
               required
             />
 
@@ -41,6 +42,7 @@
               v-model="credentials.password"
               label="Password"
               type="password"
+              :icon="Lock"
               required
             />
 
@@ -111,34 +113,39 @@
 </template>
 
 <script setup lang="ts">
-import { definePageMeta, useAuthApi } from "#imports";
 import { reactive, ref } from "vue";
-
-import type { components } from "~/types/api";
+import { User, Lock } from "lucide-vue-next";
+import { definePageMeta, useAuthApi } from "#imports";
+import {
+  instanceOfErrorResponse,
+  type LoginRequest,
+} from "~/client/src/generated";
 
 definePageMeta({
   layout: "main",
 });
 
-const authApi = useAuthApi();
+const auth = useAuthApi();
 
 const errorMessage = ref<string | null>(null);
 
-const credentials = reactive<components["schemas"]["LoginBodyDto"]>({
+const credentials = reactive<LoginRequest>({
   username: "",
   password: "",
 });
-const {
-  login,
-  pending: isLoading,
-  error,
-} = await authApi.useFetchLogin(credentials);
+
+const { error, login, pending: isLoading } = auth.login();
 
 const handleLogin = async () => {
-  await login();
+  await login(credentials);
+
   if (error.value) {
-    console.log(error.value.data);
-    errorMessage.value = error.value.data?.message || "An error occurred";
+    console.log(error.value);
+    if (instanceOfErrorResponse(error.value)) {
+      errorMessage.value = error.value.message || "An error occurred";
+      return;
+    }
+    errorMessage.value = "An error occurred";
   }
 };
 </script>

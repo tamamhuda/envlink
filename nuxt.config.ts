@@ -13,6 +13,12 @@ export default defineNuxtConfig({
           href: "https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&display=swap",
         },
       ],
+      script: [
+        {
+          type: "text/javascript",
+          src: "https://js.xendit.co/v3/xendit.min.js",
+        },
+      ],
     },
   },
 
@@ -37,10 +43,17 @@ export default defineNuxtConfig({
   imports: {
     autoImport: false,
   },
+  pinia: {
+    storesDirs: ["auth", "subscription"],
+  },
   runtimeConfig: {
     public: {
       apiBase: process.env.ENVLINK_API_URL || "http://localhost:3000",
       appUrl: process.env.APP_URL || "http://localhost:4000",
+      xendit: {
+        publicKey: process.env.XENDIT_PUBLIC_KEY || "",
+        paymentMethodRedirectUrl: process.env.PAYMENT_METHOD_REDIRECT_URL || "",
+      },
     },
   },
 });

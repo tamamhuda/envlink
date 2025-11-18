@@ -1,0 +1,8 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "types": ["node"], // add other @types here if needed
+    "typeRoots": ["./types", "./node_modules/@types"],
+    "skipLibCheck": true
+  }
+}

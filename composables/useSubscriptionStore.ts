@@ -1,88 +1,42 @@
 import { defineStore } from "pinia";
-import { useEnvlink } from "#imports";
+import { useEnvlink, useSubscriptionApi } from "#imports";
 import type {
   SubscriptionCycle,
   SubscriptionInfo,
   SubscriptionUpgradeOption,
-  SubscriptionUpgradeOptionOptionsInnerStrategyEnum,
   UpgradeSubscriptionRequest,
 } from "~/client";
-
-export type UpgradeStrategy = SubscriptionUpgradeOptionOptionsInnerStrategyEnum;
-
-export type ScheduleInterval = {
-  label: "Monthly" | "Quarterly" | "Yearly";
-  value: {
-    interval: "MONTH" | "YEAR";
-    interval_count: number;
-  };
-  priceMultiplier: number;
-  discount?: number;
-};
-
-export type UpgradeDetails = {
-  planName: "Free" | "Starter" | "Pro" | "Enterprise";
-  strategy: "UPGRADE_IMMEDIATELY" | "FINISH_CURRENT_CYCLE";
-  intervalLabel: "Monthly" | "Quarterly" | "Yearly";
-  recurrenceLabel: string;
-  total: number;
-  discount: number;
-  promoCode: {
-    code: string;
-    discount: number;
-  } | null;
-  proratedCredit: number;
-  basePrice: number;
-  intervalDiscountAmount: number;
-  promoDiscountAmount: number;
-  selectedInterval: ScheduleInterval | undefined;
-};
-
-interface UpgradeMetadata {
-  intervalLabel: "Monthly" | "Quarterly" | "Yearly";
-  recurrenceLabel: string;
-  strategy: UpgradeStrategy;
-  basePrice: number;
-  intervalDiscount: {
-    rate?: number;
-    amount: number;
-  };
-  promoDiscount: {
-    code: string;
-    rate: number;
-    amount: number;
-  } | null;
-  proratedCredit: {
-    amount: number;
-    description: string;
-  };
-  selectedInterval: {
-    interval: "MONTH" | "YEAR";
-    interval_count: number;
-    priceMultiplier: number;
-  };
-}
+import type {
+  UpgradeDetails,
+  UpgradeMetadata,
+} from "~/interfaces/subscriptions";
 
 interface SubscriptionState {
+  subscriptions: SubscriptionInfo[];
   activeSubscription: SubscriptionInfo | null;
+  pendingSubscription: SubscriptionInfo | null;
   currentPlan: SubscriptionInfo["plan"] | null;
   availablePlans: SubscriptionUpgradeOption[];
   selectedPlan: SubscriptionUpgradeOption | null;
   upgradeRequest: UpgradeSubscriptionRequest | null;
   upgradeMetadata: UpgradeMetadata | null;
   currentCycles: SubscriptionCycle[];
+  isUpgradeRequested: boolean;
   initialized: boolean;
 }
 
 export const useSubscriptionStore = defineStore("subscription", {
   state: (): SubscriptionState => ({
+    subscriptions: [],
     activeSubscription: null,
+    pendingSubscription: null,
     currentCycles: [],
     currentPlan: null,
     availablePlans: [],
     selectedPlan: null,
     upgradeRequest: null,
     initialized: false,
+    isUpgradeRequested: false,
     upgradeMetadata: null,
   }),
 
@@ -92,10 +46,36 @@ export const useSubscriptionStore = defineStore("subscription", {
   },
 
   actions: {
-    async initializeSubscription(subscription: SubscriptionInfo) {
-      this.activeSubscription = subscription;
-      await this.initializeUpgrade(subscription.id);
+    async initializeSubscription() {
+      if (this.initialized) return;
+      const { getActiveSubscription, response } =
+        useSubscriptionApi().getActive();
+
+      const { getAllSubscriptions, response: allResponse } =
+        useSubscriptionApi().getAll();
+
+      await Promise.all([getActiveSubscription(), getAllSubscriptions()]);
+
+      if (response.value) {
+        const subscription = response.value.data;
+        this.activeSubscription = subscription;
+
+        await this.initializeUpgrade(subscription.id);
+      }
+
+      if (allResponse.value) {
+        this.setSubscriptions(allResponse.value.data);
+      }
+
       this.initialized = true;
+    },
+
+    setSubscriptions(data: SubscriptionInfo[]) {
+      this.subscriptions = data.filter(
+        (s) => s.status !== "ACTIVE" && s.plan.name !== "Free",
+      );
+      this.pendingSubscription =
+        data.find((s) => s.status === "PENDING") ?? null;
     },
 
     async initializeUpgrade(id: string) {
@@ -108,13 +88,21 @@ export const useSubscriptionStore = defineStore("subscription", {
         id,
       });
 
-      if (response.value && response.value.data) {
+      if (response.value) {
         this.availablePlans = response.value.data;
         this.currentPlan =
           this.availablePlans.find(
             (p) => p.name === this.activeSubscription?.plan.name,
           ) ?? null;
       }
+    },
+    setUpgradeRequested(data: SubscriptionInfo) {
+      this.pendingSubscription = data;
+      this.isUpgradeRequested = true;
+    },
+
+    setPendingSubscription(data: SubscriptionInfo) {
+      this.pendingSubscription = data;
     },
 
     selectPlan(planId: string) {
@@ -132,9 +120,10 @@ export const useSubscriptionStore = defineStore("subscription", {
         intervalLabel: details.intervalLabel,
         recurrenceLabel: details.recurrenceLabel,
         basePrice: details.basePrice,
+        totalPrice: details.total,
         strategy: details.strategy,
         intervalDiscount: {
-          rate: details.selectedInterval?.discount,
+          rate: details.intervalDetails?.discount,
           amount: details.intervalDiscountAmount,
         },
         promoDiscount: details.promoCode
@@ -149,16 +138,18 @@ export const useSubscriptionStore = defineStore("subscription", {
           description: "Credit applied for unused time from previous plan",
         },
         selectedInterval: {
-          interval: details.selectedInterval!.value.interval,
-          interval_count: details.selectedInterval!.value.interval_count,
-          priceMultiplier: details.selectedInterval!.priceMultiplier,
+          interval: details.intervalDetails!.value.interval,
+          interval_count: details.intervalDetails!.value.interval_count,
+          priceMultiplier: details.intervalDetails!.priceMultiplier,
         },
       };
     },
 
-    clearSelection() {
+    clearUpgradeRequired() {
       this.selectedPlan = null;
       this.upgradeRequest = null;
+      this.isUpgradeRequested = false;
+      this.upgradeMetadata = null;
     },
   },
 });

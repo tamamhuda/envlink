@@ -4,7 +4,12 @@ import { definePageMeta, navigateTo, useSubscriptionStore } from "#imports";
 import { Check, Info, X } from "lucide-vue-next";
 import FormInput from "~/components/FormInput.vue";
 import Content from "~/components/Content.vue";
-import type { ScheduleInterval, UpgradeStrategy } from "#imports";
+import type {
+  RecurrenceOption,
+  ScheduleInterval,
+  UpgradeDetails,
+  UpgradeStrategy,
+} from "~/interfaces/subscriptions";
 
 definePageMeta({ layout: "account", middleware: "require-upgradable" });
 
@@ -29,7 +34,7 @@ const scheduleIntervals: ScheduleInterval[] = [
   },
 ];
 
-const recurrenceOptions = [
+const recurrenceOptions: RecurrenceOption[] = [
   { label: "3 months", value: 3 },
   { label: "6 months", value: 6 },
   { label: "12 months", value: 12 },
@@ -52,8 +57,8 @@ const upgradeTimingDetails = {
 };
 
 const upgradeStrategy = ref<UpgradeStrategy>("UPGRADE_IMMEDIATELY");
-const selectedInterval = ref(scheduleIntervals[0]);
-const selectedRecurrence = ref(recurrenceOptions[2]);
+const selectedInterval = ref<ScheduleInterval>(scheduleIntervals[0]!);
+const selectedRecurrence = ref<RecurrenceOption>(recurrenceOptions[2]!);
 
 const promoCodeInput = ref("");
 const promoCodeError = ref("");
@@ -82,9 +87,11 @@ watch(selectedInterval, (newInterval) => {
 });
 
 const computedSchedule = computed(() => ({
-  interval: selectedInterval.value?.value.interval || "MONTH",
-  interval_count: selectedInterval.value?.value?.interval_count || 1,
-  total_recurrence: selectedRecurrence.value?.value || 12,
+  interval: selectedInterval.value.value.interval || "MONTH",
+  interval_count: selectedInterval.value.value.interval_count || 1,
+  total_recurrence:
+    selectedRecurrence.value.value / selectedInterval.value.priceMultiplier ||
+    12,
 }));
 
 const promoDiscountAmount = computed(() => {
@@ -142,7 +149,7 @@ function removePromoCode() {
   appliedPromoCode.value = null;
 }
 
-const upgradeDetails = computed(() => {
+const upgradeDetails = computed<UpgradeDetails>(() => {
   const intervalDetails = scheduleIntervals.find(
     (i) =>
       i.value.interval === computedSchedule.value.interval &&
@@ -174,7 +181,8 @@ const upgradeDetails = computed(() => {
     basePrice: base,
     intervalDiscountAmount: intervalDiscountAmt,
     promoDiscountAmount: promoDiscountAmt,
-    selectedInterval: intervalDetails,
+    intervalDetails: intervalDetails,
+    recurrenceDetails: recurrence,
   };
 });
 
@@ -187,9 +195,10 @@ function continueToConfirmation() {
     plan: details.planName,
     schedule,
     description: `Upgrade to ${selectedPlan.value.name} plan (${details.intervalLabel}, ${details.recurrenceLabel})`,
+    amount: details.basePrice,
     strategy: details.strategy,
-    amount: details.total,
     discount: details.intervalDiscountAmount + details.promoDiscountAmount,
+    metadata: details,
   };
 
   subscription.setUpgradeMetadata(details);
@@ -364,14 +373,14 @@ function continueToConfirmation() {
                   class="block text-sm font-medium text-[var(--text-color)] opacity-90 mb-1.5"
                   >Promo Code</label
                 >
-                <div class="flex gap-2 items-start">
+                <div class="flex gap-2 items-start w-full">
                   <FormInput
                     id="promo-code"
                     v-model="promoCodeInput"
                     label=""
                     placeholder="Enter code"
                     :error="promoCodeError"
-                    class="flex-grow"
+                    class="flex-1"
                     @keyup.enter="applyPromoCode"
                   />
                   <button

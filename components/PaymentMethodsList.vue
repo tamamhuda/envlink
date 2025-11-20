@@ -61,15 +61,18 @@ const localMethods = computed({
   <div class="flow-root">
     <client-only>
       <template #fallback>
-        <p class="text-sm opacity-70 text-center py-6">
-          Loading payment methods...
-        </p>
+        <div v-if="loading" class="mt-6 pt-6 text-center">
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Loading payment methods...
+          </p>
+        </div>
       </template>
 
-      <div v-if="loading" class="text-sm opacity-70 text-center py-6">
-        <p>Loading payment methods...</p>
+      <div v-if="loading" class="mt-6 pt-6 text-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Loading payment methods...
+        </p>
       </div>
-
       <div
         v-else-if="localMethods.length === 0"
         class="text-sm opacity-70 text-center py-6"

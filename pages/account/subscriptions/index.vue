@@ -1,18 +1,12 @@
 <script setup lang="ts">
-import {
-  computed,
-  definePageMeta,
-  ref,
-  useSubscriptionApi,
-  useSubscriptionStore,
-} from "#imports";
-import type { components } from "~/types/api.d";
+import { computed, definePageMeta, ref, useSubscriptionStore } from "#imports";
 import Content from "~/components/Content.vue";
 import { CheckCircle, XCircle } from "lucide-vue-next";
-import type { Subscription } from "~/interfaces/api.interface";
+import type { SubscriptionInfo } from "~/client";
 
 definePageMeta({
   layout: "account",
+  middleware: "require-upgradable",
 });
 
 const subscription = useSubscriptionStore();
@@ -21,22 +15,7 @@ const subscription = useSubscriptionStore();
 // Dummy data based on the API type
 const currentSubscription = computed(() => subscription.activeSubscription);
 
-const pastSubscriptions = ref<Partial<Subscription>[]>([
-  {
-    id: "sub_67890",
-    plan: { name: "Free" },
-    status: "EXPIRED",
-    started_at: new Date("2022-12-01").toISOString(),
-    expires_at: new Date("2022-12-31").toISOString(),
-  },
-  {
-    id: "sub_abcde",
-    plan: { name: "Pro" },
-    status: "CANCELED",
-    started_at: new Date("2022-11-01").toISOString(),
-    expires_at: new Date("2022-11-30").toISOString(),
-  },
-]);
+const pastSubscriptions = ref<SubscriptionInfo[]>(subscription.subscriptions);
 
 const formatDate = (date: string | Date) => {
   if (!date) return "N/A";
@@ -50,7 +29,7 @@ const formatDate = (date: string | Date) => {
 
 <template>
   <Content :is-ready="Boolean(currentSubscription)">
-    <div class="space-y-8">
+    <div class="space-y-8 w-full">
       <!-- Current Subscription -->
       <div
         class="rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
@@ -110,7 +89,11 @@ const formatDate = (date: string | Date) => {
                 Next Billing Date
               </dt>
               <dd class="mt-1 text-lg">
-                {{ formatDate(currentSubscription.next_billing_date) }}
+                {{
+                  currentSubscription.nextBillingDate
+                    ? formatDate(currentSubscription.nextBillingDate)
+                    : "N/A"
+                }}
               </dd>
             </div>
           </dl>
@@ -143,8 +126,8 @@ const formatDate = (date: string | Date) => {
                 <div class="ml-4 flex-1 min-w-0">
                   <p class="text-sm font-medium">{{ sub.plan.name }} Plan</p>
                   <p class="text-xs opacity-60 mt-0.5">
-                    {{ formatDate(sub.started_at) }} -
-                    {{ formatDate(sub.expires_at) }}
+                    {{ formatDate(sub.startedAt) }} -
+                    {{ formatDate(sub.expiresAt) }}
                   </p>
                 </div>
               </div>

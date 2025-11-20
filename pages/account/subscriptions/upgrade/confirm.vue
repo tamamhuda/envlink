@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 
+import { cloneDeep } from "lodash";
 import {
   definePageMeta,
+  navigateTo,
+  useBillingAddressStore,
   usePaymentMethodStore,
+  useSubscriptionApi,
   useSubscriptionStore,
 } from "#imports";
-import Content from "~/components/Content.vue";
-import AddPaymentMethodModal from "~/components/AddPaymentMethodModal.vue";
-import BillingAddressModal from "~/components/BillingAddressModal.vue";
-import BillingAddressFormModal from "~/components/BillingAddressFormModal.vue";
-import PaymentMethodsList from "~/components/PaymentMethodsList.vue";
+import type { PaymentMethod, BillingAddress } from "~/client";
 import BillingAddressDisplay from "~/components/BillingAddressDisplay.vue";
-import { Plus, Info } from "lucide-vue-next";
-import type { BillingAddress, PaymentMethod } from "~/interfaces/api.interface";
-import { cloneDeep } from "lodash-es";
+import { Info, Plus } from "lucide-vue-next";
 
 definePageMeta({ layout: "account", middleware: "require-upgradable" });
 
@@ -34,6 +32,7 @@ const formatCurrency = (amount: number) => {
 const pmStore = usePaymentMethodStore();
 const paymntMethods = computed(() => pmStore.paymentMethods);
 const localPaymentMethods = ref<PaymentMethod[]>([]);
+const errorMessage = ref<string | null>(null);
 
 // drag handler
 const onDragEnd = () => {
@@ -54,35 +53,37 @@ const handleUpdatePaymentMethod = (updatedPm: PaymentMethod) => {
 };
 
 onMounted(async () => {
-  await pmStore.initializedPaymentMethods();
-  localPaymentMethods.value = paymntMethods.value;
+  await Promise.all([
+    pmStore.initializedPaymentMethods(),
+    billAddressStore.initializeBillingAddress(),
+  ]);
+  if (pmStore.initialized && billAddressStore.initialized) {
+    localPaymentMethods.value = cloneDeep(paymntMethods.value);
+    if (defaultBillingAddress.value) {
+      selectedBillingAddress.value = defaultBillingAddress.value;
+      selectedBillingAddressId.value = defaultBillingAddress.value.id;
+    }
+  }
 });
 
+const billAddressStore = useBillingAddressStore();
 const isPaymentFormModalOpen = ref(false);
 const paymentMethodToEdit = ref<PaymentMethod | null>(null);
 const isBillingModalOpen = ref(false);
 const isBillingFormModalOpen = ref(false);
-const billingAddresses = ref<BillingAddress[]>([
-  {
-    id: "ba_1",
-    first_name: "John",
-    last_name: "Doe",
-    address1: "123 Main St",
-    address2: "Apt 4B",
-    city: "Anytown",
-    state: "CA",
-    zip: "12345",
-    country: "USA",
-  },
-]);
+const billingAddresses = computed<BillingAddress[]>(
+  () => billAddressStore.billingAddresses,
+);
+
 const selectedBillingAddressId = ref<string | null>(
   billingAddresses.value[0]?.id || null,
 );
 
-const selectedBillingAddress = computed(() => {
-  return billingAddresses.value.find(
-    (a) => a.id === selectedBillingAddressId.value,
-  );
+const selectedBillingAddress = ref<BillingAddress | null>(null);
+
+const defaultBillingAddress = computed(() => {
+  if (billingAddresses.value.length === 1) return billingAddresses.value[0];
+  return billingAddresses.value.find((a) => a.isDefault);
 });
 
 const addressToEdit = ref<BillingAddress | null>(null);
@@ -151,10 +152,33 @@ const handleDeleteBillingAddress = (addressId: string) => {
 };
 
 const handleUpdateSelectedAddress = (id: string) => {
+  console.log("handleUpdateSelectedAddress", id);
   selectedBillingAddressId.value = id;
+  selectedBillingAddress.value =
+    billingAddresses.value.find((a) => a.id === id) ?? null;
 };
 
-function handleConfirmAndPay() {}
+const {
+  upgrade,
+  response,
+  error,
+  pending: isLoading,
+} = useSubscriptionApi().upgrade();
+
+async function handleConfirmAndPay() {
+  const id = subscription.activeSubscription?.id;
+  if (!id || !subscription.upgradeRequest) return;
+  errorMessage.value = null;
+
+  await upgrade(id, subscription.upgradeRequest);
+  if (response.value) {
+    return await navigateTo("/account/subscriptions/upgrade/success");
+  }
+
+  if (error.value) {
+    errorMessage.value = error.value.message || "An error occurred";
+  }
+}
 </script>
 
 <template>
@@ -208,6 +232,7 @@ function handleConfirmAndPay() {}
 
           <!-- Billing Address -->
           <BillingAddressDisplay
+            :loading="false"
             :address="selectedBillingAddress"
             @change="isBillingModalOpen = true"
           />
@@ -316,15 +341,17 @@ function handleConfirmAndPay() {}
                 class="flex justify-between font-bold text-lg border-t border-[var(--text-color)] pt-3 mt-3"
               >
                 <span>Total Estimate</span>
-                <span>{{ formatCurrency(upgradeData.amount) }}</span>
+                <span>{{ formatCurrency(metadata.totalPrice ?? 0) }}</span>
               </div>
             </div>
 
             <button
-              class="mt-8 w-full inline-flex items-center justify-center gap-2 rounded-lg border border-[var(--text-color)] px-4 py-3 font-semibold bg-blue-700/80 text-white hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
+              :disabled="isLoading"
+              class="mt-8 w-full inline-flex items-center justify-center gap-2 rounded-lg border-l border-t border-white px-4 py-3 bg-blue-700/80 text-white text-base font-semibold shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:translate-x-[2px] hover:translate-y-[2px] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               @click="handleConfirmAndPay"
             >
-              Confirm & Pay
+              <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
+              <span>{{ isLoading ? "Subscribing..." : " Confirm & Pay" }}</span>
             </button>
           </div>
         </div>

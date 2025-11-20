@@ -1,29 +1,21 @@
 import { useEnvlink, useSubscriptionStore } from "#imports";
-import type { SubscriptionCycle, SubscriptionInfo } from "~/client";
+import type { SubscriptionCycle, UpgradeSubscriptionRequest } from "~/client";
 
 export const useSubscriptionApi = () => {
   const envlink = useEnvlink();
   const susbcriptionStore = useSubscriptionStore();
-
-  const initializeSubscription = (data: SubscriptionInfo) => {
-    susbcriptionStore.initializeSubscription(data);
-  };
+  const { setUpgradeRequested} = susbcriptionStore
 
   const setCurrentCycle = (data: SubscriptionCycle[]) => {
     susbcriptionStore.currentCycles = data;
   };
 
+;  
+
   const getActive = () => {
     const { execute, response, ...rest } = envlink.subscriptions.getActive();
 
-    const getActiveSubscription = async () => {
-      await execute();
-      if (response.value && response.value.data) {
-        initializeSubscription(response.value.data);
-      }
-    };
-
-    return { getActiveSubscription, response, ...rest };
+    return { getActiveSubscription: execute, response, ...rest };
   };
 
   const getCurrentCycle = async () => {
@@ -36,8 +28,30 @@ export const useSubscriptionApi = () => {
     return response;
   };
 
+  const getAll = () => {
+    const { execute, response, ...rest } = envlink.subscriptions.getAll();
+    return { getAllSubscriptions: execute, response, ...rest };
+  };
+
+  const upgrade = () => {
+    const {execute,
+       response, ...rest} = envlink.subscriptions.upgrade()
+    const upgrade = async (id: string,upgradeSubscriptionRequest: UpgradeSubscriptionRequest) => {
+      await execute({
+        id,
+        upgradeSubscriptionRequest
+      })
+      if (response.value) {
+        setUpgradeRequested(response.value.data)
+      }
+    }
+    return { upgrade, response, ...rest }
+  }
+
   return {
+    upgrade,
     getActive,
     getCurrentCycle,
+    getAll,
   };
 };

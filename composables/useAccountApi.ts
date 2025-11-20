@@ -23,20 +23,19 @@ export function useAccountApi() {
   };
 
   const logout = async () => {
-    const { execute, error, response, ...rest } = envlink.account.logout();
+    const { execute, error, response, ...rest } = envlink.account
+      .withPostMiddleware(async ({ response }) => {
+        if (response.status === 204) {
+          clearAuth();
+          await navigateTo("/login");
+        }
+      })
+      .logout();
 
-    const logout = async () => {
-      await execute();
-      if (!error.value) {
-        clearAuth();
-        navigateTo("/login");
-      }
-    };
-
-    return { logout, ...rest };
+    return { logout: execute, ...rest };
   };
 
-  const changePassword = async () => {
+  const changePassword =  () => {
     const { execute, ...rest } = envlink.account.changePassword();
 
     const changePassword = async (body: ChangePasswordRequest) => {

@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import { definePageMeta, ref, reactive } from "#imports";
+import { definePageMeta, ref, reactive, useAccountApi } from "#imports";
 import Content from "~/components/Content.vue";
 import FormInput from "~/components/FormInput.vue";
 import { Loader2 } from "lucide-vue-next";
+import type { ChangePasswordRequest } from "~/client";
 
 definePageMeta({ layout: "account" });
 
-const passwords = reactive({
+const passwords = reactive<ChangePasswordRequest>({
   oldPassword: "",
   newPassword: "",
   confirmPassword: "",
 });
 
-const isLoading = ref(false);
+const accountApi = useAccountApi()
+const {changePassword, error,response, pending: isLoading} = accountApi.changePassword()
+
+
 const errorMessage = ref<string | null>(null);
 const successMessage = ref<string | null>(null);
 
@@ -35,31 +39,18 @@ const handleChangePassword = async () => {
   // This is a mock API call. Replace with your actual API call.
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-  // Example of how you might call your API:
-  //
-  // const { error } = await useAuthApi().useChangePassword({
-  //   old_password: passwords.oldPassword,
-  //   new_password: passwords.newPassword,
-  // });
-  //
-  // if (error.value) {
-  //   errorMessage.value = error.value.data?.message || "Failed to change password.";
-  // } else {
-  //   successMessage.value = "Password changed successfully.";
-  //   passwords.oldPassword = "";
-  //   passwords.newPassword = "";
-  //   passwords.confirmPassword = "";
-  // }
+  await changePassword(passwords)
 
-  // Mocking success/error for demonstration
-  if (passwords.oldPassword === "password") {
+  if (response.value && response.value.status === 200) {
     successMessage.value = "Password changed successfully!";
     passwords.oldPassword = "";
     passwords.newPassword = "";
     passwords.confirmPassword = "";
-  } else {
-    errorMessage.value = "Incorrect old password.";
   }
+  if (error.value) {
+    errorMessage.value = error.value.message || "An error occurred while changing password.";
+  }
+
 
   isLoading.value = false;
 };
@@ -72,7 +63,7 @@ const handleChangePassword = async () => {
     >
       <h3 class="text-lg font-semibold leading-6 mb-6">Change Password</h3>
 
-      <form @submit.prevent="handleChangePassword" class="space-y-6 max-w-md">
+      <form class="space-y-6" @submit.prevent="handleChangePassword" >
         <div
           v-if="errorMessage"
           class="text-red-500 text-sm text-center p-3 bg-red-500/10 rounded-lg"
@@ -91,6 +82,7 @@ const handleChangePassword = async () => {
           v-model="passwords.oldPassword"
           label="Old Password"
           type="password"
+          :minlength="8"
           required
         />
         <FormInput
@@ -98,6 +90,7 @@ const handleChangePassword = async () => {
           v-model="passwords.newPassword"
           label="New Password"
           type="password"
+          :minlength="8"
           required
         />
         <FormInput
@@ -105,8 +98,9 @@ const handleChangePassword = async () => {
           v-model="passwords.confirmPassword"
           label="Confirm New Password"
           type="password"
+          :minlength="8"
           required
-        />
+        /> 
 
         <div class="flex justify-end pt-2">
           <button

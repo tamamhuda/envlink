@@ -1,4 +1,4 @@
-import { useAuthCookie, useSubscriptionApi, useUserApi } from "#imports";
+import { useAuthCookie, useUserApi } from "#imports";
 import { defineStore } from "pinia";
 import {
   TokensFromJSON,
@@ -7,10 +7,12 @@ import {
   type Tokens,
   type UserInfo,
 } from "~/client";
+import type { EnvlinkErrorContext } from "~/client/src/wrap/types";
 
 type AuthState = {
   user: UserInfo | null;
   tokens: Tokens | null;
+  errors: EnvlinkErrorContext | null;
   activeSubscriptions: SubscriptionInfo | null;
   initialized: boolean;
 };
@@ -19,6 +21,7 @@ export const useAuthStore = defineStore("auth", {
   state: (): AuthState => ({
     user: null,
     tokens: null,
+    errors: null,
     activeSubscriptions: null,
     initialized: false,
   }),
@@ -40,8 +43,17 @@ export const useAuthStore = defineStore("auth", {
       this.tokens = tokens;
       if (import.meta.client) {
         const cookie = useAuthCookie();
-        console.log("Setting tokens in cookie", tokens);
+
         cookie.value = JSON.stringify(TokensToJSON(tokens));
+      }
+    },
+    getTokens() {
+      if (import.meta.client) {
+        const cookie = useAuthCookie();
+
+        return cookie.value
+          ? TokensFromJSON(JSON.parse(cookie.value))
+          : undefined;
       }
     },
 
@@ -72,8 +84,6 @@ export const useAuthStore = defineStore("auth", {
         this.tokens = null;
         useAuthCookie().value = null;
       }
-
-      this.initialized = false;
     },
 
     async initializeAuth() {
@@ -82,17 +92,9 @@ export const useAuthStore = defineStore("auth", {
       await this.bootstrapTokens();
       if (!this.tokens) return;
       const { getUserInfo } = useUserApi().getInfo();
-      const { getActiveSubscription } = useSubscriptionApi().getActive();
 
       await getUserInfo();
-      await getActiveSubscription();
       this.initialized = true;
     },
-
-    // async logout({ redirect = true } = {}) {
-    //   if (!this.tokens) return;
-    //   this.clearAuth();
-    //   if (redirect) await navigateTo("/login");
-    // },
   },
 });

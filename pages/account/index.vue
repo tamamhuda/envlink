@@ -53,7 +53,7 @@ const linkedAccounts = [
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
               Full Name
             </p>
-            <p class="mt-1">{{ user.full_name }}</p>
+            <p class="mt-1">{{ user.fullName }}</p>
           </div>
           <div>
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
@@ -71,10 +71,11 @@ const linkedAccounts = [
             <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
               Phone Number
             </p>
-            <p class="mt-1">{{ user.phone_number || "Not provided" }}</p>
+            <p class="mt-1">{{ user.phoneNumber || "Not provided" }}</p>
           </div>
         </div>
       </div>
+
 
       <!-- Linked Accounts Section -->
       <div

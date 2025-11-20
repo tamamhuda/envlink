@@ -135,10 +135,7 @@ const updateProfile = async () => {
   await updateUser(updateUserRequest);
 
   if (error.value) {
-    errorMessage.value = "An error occurred";
-    if (instanceOfErrorResponse(error.value)) {
-      errorMessage.value = error.value.message || "An error occurred";
-    }
+    errorMessage.value = error.value.message || "An error occurred";
   }
 
   if (response.value) {

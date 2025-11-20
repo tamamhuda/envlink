@@ -1,37 +1,35 @@
 <script setup lang="ts">
 import { definePageMeta, ref } from "#imports";
-import type { components } from "~/types/api.d";
 import Content from "~/components/Content.vue";
 import { Monitor, Smartphone } from "lucide-vue-next";
+import type { SessionInfo } from "~/client";
 
 definePageMeta({
   layout: "account",
 });
 
-type Session = components["schemas"]["SessionsInfoResponse"]["data"][number];
-
 // Dummy data for sessions
-const sessions = ref<Session[]>([
+const sessions = ref<SessionInfo[]>([
   {
     id: "session_1",
-    user_agent: "Chrome on macOS",
-    ip_location: "New York, USA",
-    created_at: new Date().toISOString(),
-    expires_at: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
-    is_revoked: false,
-    updated_at: new Date().toISOString(),
-    revoked_at: null,
+    userAgent: "Chrome on macOS",
+    ipLocation: "New York, USA",
+    createdAt: new Date(),
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+    isRevoked: false,
+    updatedAt: new Date(),
+    revokedAt: new Date(),
     user: {} as any,
   },
   {
     id: "session_2",
-    user_agent: "Safari on iPhone",
-    ip_location: "London, UK",
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
-    expires_at: new Date(Date.now() + 1000 * 60 * 60 * 21).toISOString(),
-    is_revoked: false,
-    updated_at: new Date().toISOString(),
-    revoked_at: null,
+    userAgent: "Safari on iPhone",
+    ipLocation: "London, UK",
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 3),
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 21),
+    isRevoked: false,
+    updatedAt: new Date(),
+    revokedAt: new Date(),
     user: {} as any,
   },
 ]);
@@ -121,16 +119,16 @@ const getDeviceIcon = (userAgent: string) => {
             >
               <div class="flex items-center min-w-0">
                 <component
-                  :is="getDeviceIcon(session.user_agent as string)"
+                  :is="getDeviceIcon(session.userAgent as string)"
                   class="h-6 w-6 text-gray-500 mr-4 flex-shrink-0"
                 />
                 <div class="min-w-0">
                   <p class="text-sm font-medium truncate">
-                    {{ session.user_agent }}
+                    {{ session.userAgent }}
                   </p>
                   <p class="text-sm text-gray-500 truncate">
-                    {{ session.ip_location }} • Last active:
-                    {{ formatDate(session.created_at as string) }}
+                    {{ session.ipLocation }} • Last active:
+                    {{ formatDate(session.createdAt as string) }}
                   </p>
                 </div>
               </div>

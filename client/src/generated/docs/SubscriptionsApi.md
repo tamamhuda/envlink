@@ -6,6 +6,7 @@ All URIs are relative to *https://local-nest.utadev.app*
 | ---------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------ |
 | [**deactivate**](SubscriptionsApi.md#deactivate)                                         | **POST** /api/v1/subscriptions/{id}/deactivate      | Deactivate subscription plan         |
 | [**getActive**](SubscriptionsApi.md#getactive)                                           | **GET** /api/v1/subscriptions/active                | Get current user active subscription |
+| [**getAll**](SubscriptionsApi.md#getall)                                                 | **GET** /api/v1/subscriptions                       | Get all subscriptions                |
 | [**getAllActiveSubscriptionCycles**](SubscriptionsApi.md#getallactivesubscriptioncycles) | **GET** /api/v1/subscriptions/active/cycles         | Get all active subscription cycles   |
 | [**getAllBySubscriptionId**](SubscriptionsApi.md#getallbysubscriptionid)                 | **GET** /api/v1/subscriptions/{id}/cycles           | Get all subscription cycles          |
 | [**getById**](SubscriptionsApi.md#getbyid)                                               | **GET** /api/v1/subscriptions/{id}                  | Get subscription by id               |
@@ -133,6 +134,64 @@ This endpoint does not need any parameter.
 | ----------- | ----------------------------------------- | ---------------- |
 | **200**     | Get user active subscription successfully | -                |
 | **4XX**     | API Error Response                        | -                |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+## getAll
+
+> AllSubscriptionInfoResponse getAll()
+
+Get all subscriptions
+
+### Example
+
+```ts
+import { Configuration, SubscriptionsApi } from "";
+import type { GetAllRequest } from "";
+
+async function example() {
+  console.log("🚀 Testing  SDK...");
+  const config = new Configuration({
+    // Configure HTTP bearer authorization: jwt-access
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new SubscriptionsApi(config);
+
+  try {
+    const data = await api.getAll();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**AllSubscriptionInfoResponse**](AllSubscriptionInfoResponse.md)
+
+### Authorization
+
+[jwt-access](../README.md#jwt-access)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+### HTTP response details
+
+| Status code | Description                        | Response headers |
+| ----------- | ---------------------------------- | ---------------- |
+| **200**     | Get all subscriptions successfully | -                |
+| **4XX**     | API Error Response                 | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

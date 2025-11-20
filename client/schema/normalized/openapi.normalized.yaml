@@ -720,6 +720,28 @@ paths:
       summary: Get current user active subscription
       tags:
         - Subscriptions
+  /api/v1/subscriptions:
+    get:
+      operationId: GetAll
+      parameters: []
+      responses:
+        "200":
+          description: Get all subscriptions successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllSubscriptionInfoResponse"
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+        - jwt-access: []
+      summary: Get all subscriptions
+      tags:
+        - Subscriptions
   /api/v1/subscriptions/{id}:
     get:
       operationId: GetById
@@ -1410,7 +1432,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UrlAnalyticTimelineDto"
+                $ref: "#/components/schemas/UrlAnalyticTimelineResponse"
         4XX:
           description: API Error Response
           content:
@@ -1543,6 +1565,116 @@ paths:
       summary: Get all analytics logs of url by id
       tags:
         - Analytics
+  /api/v1/billing-address:
+    get:
+      operationId: getAll
+      parameters: []
+      responses:
+        "200":
+          description: Returns a list of billing addresses successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AllBillingAddressResponse"
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+        - jwt-access: []
+      summary: Get all billing addresses
+      tags:
+        - Billing Address
+    post:
+      operationId: create
+      parameters: []
+      requestBody:
+        required: true
+        description: Request body for creating a billing address
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBillingAddressRequest"
+      responses:
+        "200":
+          description: Returns a billing address successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingAddressResponse"
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+        - jwt-access: []
+      summary: Create a billing address
+      tags:
+        - Billing Address
+  /api/v1/billing-address/{id}:
+    get:
+      operationId: getById
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Returns a billing address successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingAddressResponse"
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+        - jwt-access: []
+      summary: Get a billing address by id
+      tags:
+        - Billing Address
+    patch:
+      operationId: update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        description: Request body for updating a billing address
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBillingAddressRequest"
+      responses:
+        "200":
+          description: Returns a billing address successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BillingAddressResponse"
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+        - jwt-access: []
+      summary: Update a billing address
+      tags:
+        - Billing Address
 info:
   title: envlink
   description: A fast and reliable URL shortening service built with NestJS,
@@ -1626,7 +1758,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:54.251Z
+          default: 2025-11-20T08:07:15.558Z
       required:
         - success
         - path
@@ -1646,7 +1778,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:54.354Z
+          default: 2025-11-20T08:07:15.696Z
       required:
         - success
         - path
@@ -1668,7 +1800,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:54.355Z
+          default: 2025-11-20T08:07:15.696Z
       required:
         - success
         - path
@@ -1738,7 +1870,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:54.565Z
+          default: 2025-11-20T08:07:15.944Z
       required:
         - success
         - path
@@ -1771,7 +1903,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:54.564Z
+          default: 2025-11-20T08:07:15.944Z
       required:
         - success
         - path
@@ -1815,7 +1947,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:54.636Z
+          default: 2025-11-20T08:07:16.063Z
       required:
         - success
         - path
@@ -1837,7 +1969,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:54.636Z
+          default: 2025-11-20T08:07:16.063Z
       required:
         - success
         - path
@@ -1893,7 +2025,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:54.636Z
+          default: 2025-11-20T08:07:16.063Z
       required:
         - success
         - path
@@ -1921,7 +2053,29 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.013Z
+          default: 2025-11-20T08:07:16.554Z
+      required:
+        - success
+        - path
+        - data
+    AllSubscriptionInfoResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          type: number
+          default: 200
+        path:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/SubscriptionInfo"
+        timestamp:
+          type: string
+          format: date-time
+          default: 2025-11-20T08:07:16.554Z
       required:
         - success
         - path
@@ -1952,7 +2106,7 @@ components:
           default: UPGRADE_IMMEDIATELY
         amount:
           type: number
-          minimum: 0
+          minimum: 10000
           exclusiveMinimum: false
         discount:
           type: number
@@ -1968,6 +2122,7 @@ components:
           additionalProperties: {}
       required:
         - plan
+        - amount
         - schedule
         - description
     SubscriptionUpgradeOptionsResponse:
@@ -1987,7 +2142,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.014Z
+          default: 2025-11-20T08:07:16.556Z
       required:
         - success
         - path
@@ -2009,7 +2164,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.013Z
+          default: 2025-11-20T08:07:16.554Z
       required:
         - success
         - path
@@ -2029,7 +2184,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.013Z
+          default: 2025-11-20T08:07:16.554Z
       required:
         - success
         - path
@@ -2051,7 +2206,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.017Z
+          default: 2025-11-20T08:07:16.561Z
       required:
         - success
         - path
@@ -2073,7 +2228,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.017Z
+          default: 2025-11-20T08:07:16.561Z
       required:
         - success
         - path
@@ -2099,7 +2254,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:54.249Z
+          default: 2025-11-20T08:07:15.555Z
       required:
         - success
         - path
@@ -2121,7 +2276,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.021Z
+          default: 2025-11-20T08:07:16.568Z
       required:
         - success
         - path
@@ -2141,7 +2296,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.023Z
+          default: 2025-11-20T08:07:16.579Z
       required:
         - success
         - path
@@ -2163,7 +2318,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.023Z
+          default: 2025-11-20T08:07:16.579Z
       required:
         - success
         - path
@@ -2241,7 +2396,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.021Z
+          default: 2025-11-20T08:07:16.568Z
       required:
         - success
         - path
@@ -2263,7 +2418,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.027Z
+          default: 2025-11-20T08:07:16.586Z
       required:
         - success
         - path
@@ -2283,7 +2438,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.167Z
+          default: 2025-11-20T08:07:16.821Z
       required:
         - success
         - path
@@ -2303,65 +2458,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.167Z
-      required:
-        - success
-        - path
-        - data
-    UrlAnalyticTimelineDto:
-      type: object
-      properties:
-        total_visits:
-          type: number
-          minimum: 0
-          exclusiveMinimum: false
-        unique_visits:
-          type: number
-          minimum: 0
-          exclusiveMinimum: false
-        timestamp:
-          type: string
-          format: date-time
-      required:
-        - total_visits
-        - unique_visits
-        - timestamp
-    UrlAnalyticLogPaginatedResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        status:
-          type: number
-          default: 200
-        path:
-          type: string
-        data:
-          $ref: "#/components/schemas/UrlAnalyticLogPaginatedData"
-        timestamp:
-          type: string
-          format: date-time
-          default: 2025-11-18T02:02:55.166Z
-      required:
-        - success
-        - path
-        - data
-    UrlAnalyticStatResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-        status:
-          type: number
-          default: 200
-        path:
-          type: string
-        data:
-          $ref: "#/components/schemas/UrlAnalyticStat"
-        timestamp:
-          type: string
-          format: date-time
-          default: 2025-11-18T02:02:55.166Z
+          default: 2025-11-20T08:07:16.821Z
       required:
         - success
         - path
@@ -2383,11 +2480,198 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-18T02:02:55.167Z
+          default: 2025-11-20T08:07:16.823Z
       required:
         - success
         - path
         - data
+    UrlAnalyticLogPaginatedResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          type: number
+          default: 200
+        path:
+          type: string
+        data:
+          $ref: "#/components/schemas/UrlAnalyticLogPaginatedData"
+        timestamp:
+          type: string
+          format: date-time
+          default: 2025-11-20T08:07:16.819Z
+      required:
+        - success
+        - path
+        - data
+    UrlAnalyticStatResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          type: number
+          default: 200
+        path:
+          type: string
+        data:
+          $ref: "#/components/schemas/UrlAnalyticStat"
+        timestamp:
+          type: string
+          format: date-time
+          default: 2025-11-20T08:07:16.821Z
+      required:
+        - success
+        - path
+        - data
+    AllBillingAddressResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          type: number
+          default: 200
+        path:
+          type: string
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BillingAddress"
+        timestamp:
+          type: string
+          format: date-time
+          default: 2025-11-20T08:07:16.827Z
+      required:
+        - success
+        - path
+        - data
+    BillingAddressResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          type: number
+          default: 200
+        path:
+          type: string
+        data:
+          $ref: "#/components/schemas/BillingAddress"
+        timestamp:
+          type: string
+          format: date-time
+          default: 2025-11-20T08:07:16.827Z
+      required:
+        - success
+        - path
+        - data
+    UpdateBillingAddressRequest:
+      type: object
+      properties:
+        custom_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          nullable: true
+        first_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        last_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        phone:
+          type: string
+          minLength: 10
+          maxLength: 20
+        address:
+          type: string
+          minLength: 5
+          maxLength: 255
+        address2:
+          type: string
+          minLength: 5
+          maxLength: 255
+          nullable: true
+        city:
+          type: string
+          minLength: 2
+          maxLength: 100
+        state:
+          type: string
+          minLength: 2
+          maxLength: 100
+        country:
+          type: string
+          minLength: 2
+          maxLength: 100
+        zip:
+          type: string
+          minLength: 2
+          maxLength: 20
+        is_default:
+          type: boolean
+          default: false
+    CreateBillingAddressRequest:
+      type: object
+      properties:
+        custom_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          nullable: true
+        first_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        last_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        phone:
+          type: string
+          minLength: 10
+          maxLength: 20
+        address:
+          type: string
+          minLength: 5
+          maxLength: 255
+        address2:
+          type: string
+          minLength: 5
+          maxLength: 255
+          nullable: true
+        city:
+          type: string
+          minLength: 2
+          maxLength: 100
+        state:
+          type: string
+          minLength: 2
+          maxLength: 100
+        country:
+          type: string
+          minLength: 2
+          maxLength: 100
+        zip:
+          type: string
+          minLength: 2
+          maxLength: 20
+        is_default:
+          type: boolean
+          default: false
+      required:
+        - first_name
+        - last_name
+        - phone
+        - address
+        - city
+        - state
+        - country
+        - zip
     PaginatedMeta:
       type: object
       properties:
@@ -2966,7 +3250,9 @@ components:
         schedule:
           $ref: "#/components/schemas/SubscriptionInfoSchedule"
         metadata:
-          $ref: "#/components/schemas/SubscriptionInfoMetadata"
+          type: object
+          additionalProperties: {}
+          nullable: true
         transaction_status:
           type: string
           nullable: true
@@ -2993,7 +3279,6 @@ components:
         - schedule
         - metadata
         - transaction_status
-        - next_billing_date
     SubscriptionInfoPlan:
       type: object
       properties:
@@ -3069,46 +3354,6 @@ components:
         - interval
         - interval_count
         - total_recurrence
-      nullable: true
-    SubscriptionInfoMetadata:
-      type: object
-      properties:
-        strategy:
-          type: string
-          enum:
-            - UPGRADE_IMMEDIATELY
-            - FINISH_CURRENT_CYCLE
-          x-enumNames:
-            - UPGRADE_IMMEDIATELY
-            - FINISH_CURRENT_CYCLE
-        previous_plan:
-          type: string
-          enum:
-            - Free
-            - Pro
-            - Starter
-            - Enterprise
-          x-enumNames:
-            - FREE
-            - PRO
-            - STARTER
-            - ENTERPRISE
-        new_plan:
-          type: string
-          enum:
-            - Free
-            - Pro
-            - Starter
-            - Enterprise
-          x-enumNames:
-            - FREE
-            - PRO
-            - STARTER
-            - ENTERPRISE
-      required:
-        - strategy
-        - previous_plan
-        - new_plan
       nullable: true
     SubscriptionUpgradeOption:
       type: object
@@ -3774,6 +4019,24 @@ components:
         - original_url
         - channels
         - metadata
+    UrlAnalyticTimeline:
+      type: object
+      properties:
+        total_visits:
+          type: number
+          minimum: 0
+          exclusiveMinimum: false
+        unique_visits:
+          type: number
+          minimum: 0
+          exclusiveMinimum: false
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - total_visits
+        - unique_visits
+        - timestamp
     UrlAnalyticLogPaginatedData:
       type: object
       properties:
@@ -3864,24 +4127,81 @@ components:
         - visitor_count
         - url_id
         - channels
-    UrlAnalyticTimeline:
+    BillingAddress:
       type: object
       properties:
-        total_visits:
-          type: number
-          minimum: 0
-          exclusiveMinimum: false
-        unique_visits:
-          type: number
-          minimum: 0
-          exclusiveMinimum: false
-        timestamp:
+        id:
+          type: string
+          format: uuid
+          minLength: 1
+        created_at:
           type: string
           format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        user_id:
+          type: string
+          format: uuid
+          minLength: 1
+        custom_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          nullable: true
+        first_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        last_name:
+          type: string
+          minLength: 2
+          maxLength: 100
+        phone:
+          type: string
+          minLength: 10
+          maxLength: 20
+        address:
+          type: string
+          minLength: 5
+          maxLength: 255
+        address2:
+          type: string
+          minLength: 5
+          maxLength: 255
+          nullable: true
+        city:
+          type: string
+          minLength: 2
+          maxLength: 100
+        state:
+          type: string
+          minLength: 2
+          maxLength: 100
+        country:
+          type: string
+          minLength: 2
+          maxLength: 100
+        zip:
+          type: string
+          minLength: 2
+          maxLength: 20
+        is_default:
+          type: boolean
+          default: false
       required:
-        - total_visits
-        - unique_visits
-        - timestamp
+        - id
+        - created_at
+        - updated_at
+        - user_id
+        - first_name
+        - last_name
+        - phone
+        - address
+        - city
+        - state
+        - country
+        - zip
     ChannelIdsData:
       type: string
       properties: {}

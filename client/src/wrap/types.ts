@@ -1,5 +1,5 @@
 import type { Ref } from "vue";
-import type { Configuration, Tokens } from "../generated";
+import type { Configuration, ErrorResponse, Tokens } from "../generated";
 
 export interface AuthConfig {
   getTokens: () => Promise<Tokens> | Tokens | null;
@@ -16,9 +16,10 @@ export type ReactiveReturningKeys =
 export type ApiMethod<T extends (...args: any[]) => any> = {
   execute: (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>> | null>;
   pending: Ref<boolean>;
-  error: Ref<unknown | null>;
+  error: Ref<ErrorResponse | null>;
   response: Ref<Awaited<ReturnType<T>> | null>;
 };
+
 export type ReactiveApi<T extends object> = {
   [K in keyof T]: T[K] extends (...args: any[]) => any
     ? K extends ReactiveReturningKeys
@@ -30,7 +31,17 @@ export type ReactiveApi<T extends object> = {
 export interface EnvlinkClientOptions {
   config: Configuration;
   auth?: AuthConfig;
+  onError?: (ctx: EnvlinkErrorContext) => void | Promise<void>;
 }
+
+export interface EnvlinkErrorContext {
+  type: "NETWORK_ERROR" | "UNAUTHORIZED" | "REFRESH_FAILED" | "API_ERROR";
+  error: unknown;
+  status?: number;
+  endpoint: string;
+  method: string;
+}
+
 /** * Methods that return a new API instance and therefore * must also return a wrapped API. */
 type WrapReturningKeys =
   | "withMiddleware"

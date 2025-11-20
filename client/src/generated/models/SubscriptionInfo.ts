@@ -27,13 +27,6 @@ import {
   ActionsDataToJSON,
   ActionsDataToJSONTyped,
 } from "./ActionsData";
-import type { SubscriptionInfoMetadata } from "./SubscriptionInfoMetadata";
-import {
-  SubscriptionInfoMetadataFromJSON,
-  SubscriptionInfoMetadataFromJSONTyped,
-  SubscriptionInfoMetadataToJSON,
-  SubscriptionInfoMetadataToJSONTyped,
-} from "./SubscriptionInfoMetadata";
 import type { SubscriptionInfoSchedule } from "./SubscriptionInfoSchedule";
 import {
   SubscriptionInfoScheduleFromJSON,
@@ -128,10 +121,10 @@ export interface SubscriptionInfo {
   schedule: SubscriptionInfoSchedule;
   /**
    *
-   * @type {SubscriptionInfoMetadata}
+   * @type {{ [key: string]: any; }}
    * @memberof SubscriptionInfo
    */
-  metadata: SubscriptionInfoMetadata;
+  metadata: { [key: string]: any };
   /**
    *
    * @type {string}
@@ -143,7 +136,7 @@ export interface SubscriptionInfo {
    * @type {Date}
    * @memberof SubscriptionInfo
    */
-  nextBillingDate: Date;
+  nextBillingDate?: Date;
   /**
    *
    * @type {Array<ActionsData>}
@@ -192,8 +185,6 @@ export function instanceOfSubscriptionInfo(
     value["transactionStatus"] === undefined
   )
     return false;
-  if (!("nextBillingDate" in value) || value["nextBillingDate"] === undefined)
-    return false;
   return true;
 }
 
@@ -222,9 +213,12 @@ export function SubscriptionInfoFromJSONTyped(
     status: json["status"],
     isTrial: json["is_trial"] == null ? undefined : json["is_trial"],
     schedule: SubscriptionInfoScheduleFromJSON(json["schedule"]),
-    metadata: SubscriptionInfoMetadataFromJSON(json["metadata"]),
+    metadata: json["metadata"],
     transactionStatus: json["transaction_status"],
-    nextBillingDate: new Date(json["next_billing_date"]),
+    nextBillingDate:
+      json["next_billing_date"] == null
+        ? undefined
+        : new Date(json["next_billing_date"]),
     actions:
       json["actions"] == null
         ? undefined
@@ -258,9 +252,12 @@ export function SubscriptionInfoToJSONTyped(
     status: value["status"],
     is_trial: value["isTrial"],
     schedule: SubscriptionInfoScheduleToJSON(value["schedule"]),
-    metadata: SubscriptionInfoMetadataToJSON(value["metadata"]),
+    metadata: value["metadata"],
     transaction_status: value["transactionStatus"],
-    next_billing_date: value["nextBillingDate"].toISOString(),
+    next_billing_date:
+      value["nextBillingDate"] == null
+        ? value["nextBillingDate"]
+        : value["nextBillingDate"].toISOString(),
     actions:
       value["actions"] == null
         ? undefined

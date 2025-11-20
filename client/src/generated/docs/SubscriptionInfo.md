@@ -17,7 +17,7 @@
 | `status`            | string                                                  |
 | `isTrial`           | boolean                                                 |
 | `schedule`          | [SubscriptionInfoSchedule](SubscriptionInfoSchedule.md) |
-| `metadata`          | [SubscriptionInfoMetadata](SubscriptionInfoMetadata.md) |
+| `metadata`          | { [key: string]: any; }                                 |
 | `transactionStatus` | string                                                  |
 | `nextBillingDate`   | Date                                                    |
 | `actions`           | [Array&lt;ActionsData&gt;](ActionsData.md)              |

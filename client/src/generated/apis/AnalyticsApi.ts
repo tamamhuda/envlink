@@ -18,7 +18,6 @@ import type {
   UrlAnalyticLogPaginatedResponse,
   UrlAnalyticStatPaginatedResponse,
   UrlAnalyticStatResponse,
-  UrlAnalyticTimelineDto,
   UrlAnalyticTimelineResponse,
   UrlAnalyticsOverviewResponse,
 } from "../models/index";
@@ -31,8 +30,6 @@ import {
   UrlAnalyticStatPaginatedResponseToJSON,
   UrlAnalyticStatResponseFromJSON,
   UrlAnalyticStatResponseToJSON,
-  UrlAnalyticTimelineDtoFromJSON,
-  UrlAnalyticTimelineDtoToJSON,
   UrlAnalyticTimelineResponseFromJSON,
   UrlAnalyticTimelineResponseToJSON,
   UrlAnalyticsOverviewResponseFromJSON,
@@ -123,14 +120,14 @@ export interface AnalyticsApiInterface {
    */
   getAllUrlTimelineRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<UrlAnalyticTimelineDto>>;
+  ): Promise<runtime.ApiResponse<UrlAnalyticTimelineResponse>>;
 
   /**
    * Get all timeline of urls
    */
   getAllUrlTimeline(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<UrlAnalyticTimelineDto>;
+  ): Promise<UrlAnalyticTimelineResponse>;
 
   /**
    *
@@ -328,7 +325,7 @@ export class AnalyticsApi
    */
   async getAllUrlTimelineRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<UrlAnalyticTimelineDto>> {
+  ): Promise<runtime.ApiResponse<UrlAnalyticTimelineResponse>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -346,7 +343,7 @@ export class AnalyticsApi
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      UrlAnalyticTimelineDtoFromJSON(jsonValue),
+      UrlAnalyticTimelineResponseFromJSON(jsonValue),
     );
   }
 
@@ -355,7 +352,7 @@ export class AnalyticsApi
    */
   async getAllUrlTimeline(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<UrlAnalyticTimelineDto> {
+  ): Promise<UrlAnalyticTimelineResponse> {
     const response = await this.getAllUrlTimelineRaw(initOverrides);
     return await response.value();
   }

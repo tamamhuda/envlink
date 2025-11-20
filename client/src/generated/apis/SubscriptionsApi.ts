@@ -15,6 +15,7 @@
 import * as runtime from "../runtime";
 import type {
   AllSubscriptionCyclesResponse,
+  AllSubscriptionInfoResponse,
   ErrorResponse,
   SubscriptionCycleResponse,
   SubscriptionInfoResponse,
@@ -24,6 +25,8 @@ import type {
 import {
   AllSubscriptionCyclesResponseFromJSON,
   AllSubscriptionCyclesResponseToJSON,
+  AllSubscriptionInfoResponseFromJSON,
+  AllSubscriptionInfoResponseToJSON,
   ErrorResponseFromJSON,
   ErrorResponseToJSON,
   SubscriptionCycleResponseFromJSON,
@@ -107,6 +110,24 @@ export interface SubscriptionsApiInterface {
   getActive(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<SubscriptionInfoResponse>;
+
+  /**
+   *
+   * @summary Get all subscriptions
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof SubscriptionsApiInterface
+   */
+  getAllRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AllSubscriptionInfoResponse>>;
+
+  /**
+   * Get all subscriptions
+   */
+  getAll(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AllSubscriptionInfoResponse>;
 
   /**
    *
@@ -343,6 +364,52 @@ export class SubscriptionsApi
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<SubscriptionInfoResponse> {
     const response = await this.getActiveRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get all subscriptions
+   */
+  async getAllRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<AllSubscriptionInfoResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token("jwt-access", []);
+
+      if (tokenString) {
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
+      }
+    }
+
+    let urlPath = `/api/v1/subscriptions`;
+
+    const response = await this.request(
+      {
+        path: urlPath,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      AllSubscriptionInfoResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get all subscriptions
+   */
+  async getAll(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<AllSubscriptionInfoResponse> {
+    const response = await this.getAllRaw(initOverrides);
     return await response.value();
   }
 

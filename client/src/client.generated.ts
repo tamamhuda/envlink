@@ -1,8 +1,10 @@
 import type { EnvlinkClientOptions, ReactiveApi } from "./wrap/types";
+import { reactiveApi } from "./wrap/reactiveApi";
 
 import * as AccountApiModule from "./generated/apis/AccountApi";
 import * as AnalyticsApiModule from "./generated/apis/AnalyticsApi";
 import * as AuthenticationApiModule from "./generated/apis/AuthenticationApi";
+import * as BillingAddressApiModule from "./generated/apis/BillingAddressApi";
 import * as HealthApiModule from "./generated/apis/HealthApi";
 import * as PaymentMethodsApiModule from "./generated/apis/PaymentMethodsApi";
 import * as PublicPaymentMethodsApiModule from "./generated/apis/PublicPaymentMethodsApi";
@@ -15,12 +17,12 @@ import * as UrlsApiModule from "./generated/apis/UrlsApi";
 import * as UserApiModule from "./generated/apis/UserApi";
 
 import { EnvlinkConfiguration } from "./wrap/config";
-import { reactiveApi } from "./wrap/reactiveApi";
 
 export class EnvlinkClient {
   public account: ReactiveApi<AccountApiModule.AccountApi>;
   public analytics: ReactiveApi<AnalyticsApiModule.AnalyticsApi>;
   public authentication: ReactiveApi<AuthenticationApiModule.AuthenticationApi>;
+  public billingAddress: ReactiveApi<BillingAddressApiModule.BillingAddressApi>;
   public health: ReactiveApi<HealthApiModule.HealthApi>;
   public paymentMethods: ReactiveApi<PaymentMethodsApiModule.PaymentMethodsApi>;
   public publicPaymentMethods: ReactiveApi<PublicPaymentMethodsApiModule.PublicPaymentMethodsApi>;
@@ -45,6 +47,10 @@ export class EnvlinkClient {
     );
     this.authentication = reactiveApi(
       new AuthenticationApiModule.AuthenticationApi(configuration),
+      auth,
+    );
+    this.billingAddress = reactiveApi(
+      new BillingAddressApiModule.BillingAddressApi(configuration),
       auth,
     );
     this.health = reactiveApi(

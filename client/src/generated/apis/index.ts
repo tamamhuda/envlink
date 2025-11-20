@@ -3,6 +3,7 @@
 export * from "./AccountApi";
 export * from "./AnalyticsApi";
 export * from "./AuthenticationApi";
+export * from "./BillingAddressApi";
 export * from "./HealthApi";
 export * from "./PaymentMethodsApi";
 export * from "./PublicPaymentMethodsApi";

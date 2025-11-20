@@ -44,7 +44,7 @@ export interface UpgradeSubscriptionRequest {
    * @type {number}
    * @memberof UpgradeSubscriptionRequest
    */
-  amount?: number;
+  amount: number;
   /**
    *
    * @type {number}
@@ -100,6 +100,7 @@ export function instanceOfUpgradeSubscriptionRequest(
   value: object,
 ): value is UpgradeSubscriptionRequest {
   if (!("plan" in value) || value["plan"] === undefined) return false;
+  if (!("amount" in value) || value["amount"] === undefined) return false;
   if (!("schedule" in value) || value["schedule"] === undefined) return false;
   if (!("description" in value) || value["description"] === undefined)
     return false;
@@ -122,7 +123,7 @@ export function UpgradeSubscriptionRequestFromJSONTyped(
   return {
     plan: json["plan"],
     strategy: json["strategy"] == null ? undefined : json["strategy"],
-    amount: json["amount"] == null ? undefined : json["amount"],
+    amount: json["amount"],
     discount: json["discount"] == null ? undefined : json["discount"],
     schedule: UpgradeSubscriptionRequestScheduleFromJSON(json["schedule"]),
     description: json["description"],

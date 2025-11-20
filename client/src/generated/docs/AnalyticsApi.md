@@ -142,7 +142,7 @@ No authorization required
 
 ## getAllUrlTimeline
 
-> UrlAnalyticTimelineDto getAllUrlTimeline()
+> UrlAnalyticTimelineResponse getAllUrlTimeline()
 
 Get all timeline of urls
 
@@ -174,7 +174,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**UrlAnalyticTimelineDto**](UrlAnalyticTimelineDto.md)
+[**UrlAnalyticTimelineResponse**](UrlAnalyticTimelineResponse.md)
 
 ### Authorization
 

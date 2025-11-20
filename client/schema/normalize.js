@@ -2,6 +2,11 @@ import fs from "fs";
 import YAML from "yaml";
 
 // -------------------------------------------------
+// Configuration
+// -------------------------------------------------
+const singularExceptions = ["BillingAddress"];
+
+// -------------------------------------------------
 // Load Spec
 // -------------------------------------------------
 const inputPath = "./client/schema/source/openapi.yaml";
@@ -19,7 +24,18 @@ const components = spec.components.schemas;
 // Helpers
 // -------------------------------------------------
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
-const singular = (name) => (name.endsWith("s") ? name.slice(0, -1) : name);
+
+const singular = (name) => {
+  // Check if the name (or any part of it) is in the exceptions list
+  for (const exception of singularExceptions) {
+    if (name === exception || name.endsWith(exception)) {
+      return name;
+    }
+  }
+
+  // Default behavior: remove trailing 's'
+  return name.endsWith("s") ? name.slice(0, -1) : name;
+};
 
 const isResponseModel = (name) =>
   name.endsWith("Response") && !name.endsWith("PaginatedResponse");

@@ -17,9 +17,10 @@ import * as SubscriptionsApiModule from "./generated/apis/SubscriptionsApi";
 import * as TransactionsApiModule from "./generated/apis/TransactionsApi";
 import * as UrlsApiModule from "./generated/apis/UrlsApi";
 import * as UserApiModule from "./generated/apis/UserApi";
+import * as BillingAddressApiModule from "./generated/apis/BillingAddressApi";
 
 import { EnvlinkConfiguration } from "./wrap/config";
-import { reactiveApi } from "./wrap/reactiveApi";
+import { initAuthScheduler, reactiveApi } from "./wrap/reactiveApi2";
 import type { Configuration } from "./generated";
 
 type EnvlinkApis = {
@@ -42,6 +43,7 @@ export class EnvlinkClient {
   public account: ReactiveApi<AccountApiModule.AccountApi>;
   public analytics: ReactiveApi<AnalyticsApiModule.AnalyticsApi>;
   public authentication: ReactiveApi<AuthenticationApiModule.AuthenticationApi>;
+  public billingAddress: ReactiveApi<BillingAddressApiModule.BillingAddressApi>;
   public health: ReactiveApi<HealthApiModule.HealthApi>;
   public paymentMethods: ReactiveApi<PaymentMethodsApiModule.PaymentMethodsApi>;
   public publicPaymentMethods: ReactiveApi<PublicPaymentMethodsApiModule.PublicPaymentMethodsApi>;
@@ -53,42 +55,57 @@ export class EnvlinkClient {
   public urls: ReactiveApi<UrlsApiModule.UrlsApi>;
   public user: ReactiveApi<UserApiModule.UserApi>;
 
-  constructor({ config, auth }: EnvlinkClientOptions) {
+  constructor({ config, auth, onError }: EnvlinkClientOptions) {
     const configuration = new EnvlinkConfiguration(config, auth);
+
+    if (auth) initAuthScheduler(auth);
 
     this.account = reactiveApi(
       new AccountApiModule.AccountApi(configuration),
       auth,
+      onError,
     );
     this.analytics = reactiveApi(
       new AnalyticsApiModule.AnalyticsApi(configuration),
       auth,
+      onError,
     );
     this.authentication = reactiveApi(
       new AuthenticationApiModule.AuthenticationApi(configuration),
       auth,
+      onError,
+    );
+    this.billingAddress = reactiveApi(
+      new BillingAddressApiModule.BillingAddressApi(configuration),
+      auth,
+      onError,
     );
     this.health = reactiveApi(
       new HealthApiModule.HealthApi(configuration),
       auth,
+      onError,
     );
     this.paymentMethods = reactiveApi(
       new PaymentMethodsApiModule.PaymentMethodsApi(configuration),
       auth,
+      onError,
     );
     this.publicPaymentMethods = reactiveApi(
       new PublicPaymentMethodsApiModule.PublicPaymentMethodsApi(configuration),
       auth,
+      onError,
     );
     this.publicSubscriptionsPlans = reactiveApi(
       new PublicSubscriptionsPlansApiModule.PublicSubscriptionsPlansApi(
         configuration,
       ),
       auth,
+      onError,
     );
     this.publicURLs = reactiveApi(
       new PublicURLsApiModule.PublicURLsApi(configuration),
       auth,
+      onError,
     );
     this.sessions = reactiveApi(
       new SessionsApiModule.SessionsApi(configuration),
@@ -97,18 +114,30 @@ export class EnvlinkClient {
     this.subscriptions = reactiveApi(
       new SubscriptionsApiModule.SubscriptionsApi(configuration),
       auth,
+      onError,
     );
     this.transactions = reactiveApi(
       new TransactionsApiModule.TransactionsApi(configuration),
       auth,
+      onError,
     );
-    this.urls = reactiveApi(new UrlsApiModule.UrlsApi(configuration), auth);
-    this.user = reactiveApi(new UserApiModule.UserApi(configuration), auth);
+    this.urls = reactiveApi(
+      new UrlsApiModule.UrlsApi(configuration),
+      auth,
+      onError,
+    );
+    this.user = reactiveApi(
+      new UserApiModule.UserApi(configuration),
+      auth,
+      onError,
+    );
   }
 }
 
 export function createEnvlinkClient(config: Configuration, auth?: AuthConfig) {
   const configuration = new EnvlinkConfiguration(config, auth);
+
+  if (auth) initAuthScheduler(auth);
 
   return {
     account: reactiveApi(new AccountApiModule.AccountApi(configuration), auth),

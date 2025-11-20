@@ -1,70 +1,92 @@
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
-import { X, ChevronDown } from "lucide-vue-next";
+import { X, ChevronDown, Loader2 } from "lucide-vue-next";
 import CountryFlag from "vue-country-flag-next";
 import { getNames, getCode } from "country-list";
-
-type BillingAddress = {
-  id: string;
-  first_name: string;
-  last_name: string;
-  address1: string;
-  address2: string | null;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-};
+import {
+  instanceOfErrorResponse,
+  type BillingAddress,
+  type CreateBillingAddressRequest,
+} from "~/client";
+import { useBillingAddressApi } from "#imports";
+import { isEqual, cloneDeep } from "lodash";
 
 const props = defineProps({
-  isOpen: {
-    type: Boolean,
-    required: true,
-  },
+  isOpen: { type: Boolean, required: true },
   editingAddress: {
     type: Object as () => BillingAddress | null,
     default: null,
   },
 });
 
-const emit = defineEmits(["close", "save-billing-address", "delete-billing-address"]);
+const emit = defineEmits([
+  "close",
+  "save-billing-address",
+  "delete-billing-address",
+]);
 
 const isCountryDropdownOpen = ref(false);
 const searchCountryQuery = ref("");
+const isEditing = ref(false);
+const errorMessage = ref<string | null>(null);
 const countries = getNames();
+const billingAddressApi = useBillingAddressApi();
 
-const billingAddress = ref<Partial<BillingAddress>>({
-  id: "",
-  first_name: "",
-  last_name: "",
-  address1: "",
+const {
+  createBillingAddress,
+  error: createError,
+  pending: isCreateLoading,
+} = billingAddressApi.create();
+const {
+  response: updateResponse,
+  updateBillingAddress,
+  error: updateError,
+  pending: isUpdateLoading,
+} = billingAddressApi.update();
+
+const selectedBillingAddressId = ref<string | null>(null);
+
+const emptyBilling: Omit<
+  BillingAddress,
+  "id" | "createdAt" | "updatedAt" | "userId"
+> = {
+  firstName: "",
+  lastName: "",
+  address: "",
   address2: "",
   city: "",
   state: "",
   zip: "",
   country: "",
-});
+  phone: "",
+  isDefault: false,
+  customName: "",
+};
 
+const billingAddress = ref(cloneDeep(emptyBilling));
+const initialFormSnapshot = ref(cloneDeep(emptyBilling));
+
+// sync on open
 watch(
   () => props.isOpen,
   (val) => {
-    if (val) {
-      isCountryDropdownOpen.value = false;
-      if (props.editingAddress) {
-        billingAddress.value = { ...props.editingAddress };
-      } else {
-        billingAddress.value = {
-          id: "",
-          first_name: "",
-          last_name: "",
-          address1: "",
-          address2: "",
-          city: "",
-          state: "",
-          zip: "",
-          country: "",
-        };
-      }
+    if (!val) return;
+
+    isCountryDropdownOpen.value = false;
+
+    if (props.editingAddress) {
+      isEditing.value = true;
+      selectedBillingAddressId.value = props.editingAddress.id;
+      billingAddress.value = cloneDeep({
+        ...props.editingAddress,
+        // ensure optional field exists
+        address2: props.editingAddress.address2 ?? "",
+      });
+      initialFormSnapshot.value = cloneDeep(billingAddress.value);
+    } else {
+      isEditing.value = false;
+      billingAddress.value = cloneDeep(emptyBilling);
+      initialFormSnapshot.value = cloneDeep(emptyBilling);
     }
   },
 );
@@ -76,31 +98,82 @@ const filteredCountries = computed(() => {
 });
 
 const selectedCountryCode = computed(() => {
-  return billingAddress.value.country ? getCode(billingAddress.value.country) : null;
+  return billingAddress.value.country
+    ? getCode(billingAddress.value.country)
+    : null;
 });
 
-const closeModal = () => {
-  emit("close");
+// detect changes
+const hasChanges = computed(() => {
+  return !isEqual(billingAddress.value, initialFormSnapshot.value);
+});
+
+const closeModal = () => emit("close");
+
+const handleCreateBillingAddress = async () => {
+  billingAddress.value.address2 =
+    billingAddress.value.address2?.trim() === ""
+      ? undefined
+      : billingAddress.value.address2;
+
+  await createBillingAddress(billingAddress.value);
+
+  if (createError.value && instanceOfErrorResponse(createError.value)) {
+    errorMessage.value = createError.value.message || "An error occurred";
+    return;
+  }
+  closeModal();
 };
 
-const saveBillingAddress = () => {
+const handleUpdateBillingAddress = async () => {
+  if (!selectedBillingAddressId.value) return;
+
+  billingAddress.value.address2 =
+    billingAddress.value.address2?.trim() === ""
+      ? undefined
+      : billingAddress.value.address2;
+
+  await updateBillingAddress(
+    selectedBillingAddressId.value,
+    billingAddress.value,
+  );
+
+  if (updateError.value && instanceOfErrorResponse(updateError.value)) {
+    errorMessage.value = updateError.value.message || "An error occurred";
+    return;
+  }
+
+  if (updateResponse.value) {
+    billingAddress.value = cloneDeep(updateResponse.value.data);
+    initialFormSnapshot.value = cloneDeep(updateResponse.value.data);
+  }
+
+  // closeModal();
+};
+
+const saveBillingAddress = async () => {
+  if (!hasChanges.value) return;
+
   if (
-    !billingAddress.value.first_name ||
-    !billingAddress.value.last_name ||
-    !billingAddress.value.address1 ||
+    !billingAddress.value.firstName ||
+    !billingAddress.value.lastName ||
+    !billingAddress.value.address ||
     !billingAddress.value.city ||
     !billingAddress.value.zip ||
-    !billingAddress.value.country
+    !billingAddress.value.country ||
+    !billingAddress.value.phone
   ) {
     return;
   }
-  emit("save-billing-address", { ...billingAddress.value });
-  closeModal();
+
+  errorMessage.value = null;
+
+  return isEditing.value
+    ? await handleUpdateBillingAddress()
+    : await handleCreateBillingAddress();
 };
 
-const handleBillingCancel = () => {
-  closeModal();
-};
+const handleBillingCancel = () => closeModal();
 
 const selectCountry = (country: string) => {
   billingAddress.value.country = country;
@@ -125,8 +198,8 @@ const handleDeleteAddress = () => {
       class="relative w-full max-w-lg rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
     >
       <button
-        @click="closeModal"
         class="absolute top-4 right-4 text-[var(--text-color)] opacity-70 hover:opacity-100"
+        @click="closeModal"
       >
         <X class="w-6 h-6" />
       </button>
@@ -135,17 +208,17 @@ const handleDeleteAddress = () => {
         <h3 class="text-lg font-semibold leading-6 mb-6">
           {{ editingAddress ? "Edit" : "Add" }} Billing Address
         </h3>
-        <form @submit.prevent="saveBillingAddress" class="space-y-4">
+        <form class="space-y-4" @submit.prevent="saveBillingAddress">
           <div class="flex gap-4">
             <input
-              v-model="billingAddress.first_name"
+              v-model="billingAddress.firstName"
               type="text"
               placeholder="First Name"
               required
               class="w-full px-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb]"
             />
             <input
-              v-model="billingAddress.last_name"
+              v-model="billingAddress.lastName"
               type="text"
               placeholder="Last Name"
               required
@@ -154,7 +227,7 @@ const handleDeleteAddress = () => {
           </div>
           <!-- Form fields for billing address -->
           <input
-            v-model="billingAddress.address1"
+            v-model="billingAddress.address"
             type="text"
             placeholder="Address Line 1"
             required
@@ -192,9 +265,9 @@ const handleDeleteAddress = () => {
             />
             <div class="relative w-full">
               <button
+                class="w-full flex items-center justify-between text-left px-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb]"
                 type="button"
                 @click="isCountryDropdownOpen = !isCountryDropdownOpen"
-                class="w-full flex items-center justify-between text-left px-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb]"
               >
                 <div class="flex items-center gap-2">
                   <CountryFlag
@@ -226,8 +299,8 @@ const handleDeleteAddress = () => {
                   <li
                     v-for="country in filteredCountries"
                     :key="country"
-                    @click="selectCountry(country)"
                     class="px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50 flex items-center gap-2"
+                    @click="selectCountry(country)"
                   >
                     <CountryFlag :country="getCode(country)" size="small" />
                     <span class="text-sm">{{ country }}</span>
@@ -237,13 +310,51 @@ const handleDeleteAddress = () => {
             </div>
           </div>
 
+          <input
+            v-model="billingAddress.phone"
+            type="text"
+            placeholder="Phone Number"
+            class="w-full px-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb]"
+          />
+
+          <input
+            v-model="billingAddress.customName"
+            type="text"
+            placeholder="Custom Name"
+            class="w-full px-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb]"
+          />
+
+          <!-- Set as default checkbox -->
+          <div class="flex items-center pt-5">
+            <input
+              id="default-checkbox"
+              v-model="billingAddress.isDefault"
+              type="checkbox"
+              class="w-4 h-4 rounded bg-transparent border-[var(--text-color)] text-blue-600 focus:ring-blue-500"
+            />
+            <label
+              for="default-checkbox"
+              class="ml-3 text-sm font-medium text-[var(--text-color)]"
+              >Set as default billing address</label
+            >
+          </div>
+
+          <div class="min-h-10">
+            <div
+              v-if="errorMessage"
+              class="text-red-500 text-sm text-center p-2 bg-red-500/10 rounded-lg"
+            >
+              {{ errorMessage }}
+            </div>
+          </div>
+
           <div class="flex justify-between items-center gap-4 pt-6">
             <div>
               <button
                 v-if="editingAddress"
                 type="button"
-                @click="handleDeleteAddress"
                 class="inline-flex items-center gap-2 rounded-lg border-l border-t border-white px-4 py-2 text-red-600 dark:text-red-400 shadow-[inset_-2px_-2px_0_var(--text-color)] hover:shadow-[inset_-3px_-3px_0_var(--text-color)] transition-all focus:outline-none"
+                @click="handleDeleteAddress"
               >
                 Delete
               </button>
@@ -251,16 +362,27 @@ const handleDeleteAddress = () => {
             <div class="flex gap-4">
               <button
                 type="button"
-                @click="handleBillingCancel"
                 class="inline-flex items-center gap-2 rounded-lg border-l border-t border-white px-4 py-2 shadow-[inset_-2px_-2px_0_var(--text-color)] hover:shadow-[inset_-3px_-3px_0_var(--text-color)] transition-all focus:outline-none"
+                @click="handleBillingCancel"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                class="inline-flex items-center gap-2 rounded-lg border-l border-t border-white px-4 py-3 bg-blue-700/80 text-white text-base font-semibold shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:translate-x-[2px] hover:translate-y-[2px] active:scale-95 transition-all"
+                :disabled="isCreateLoading || isUpdateLoading || !hasChanges"
+                class="inline-flex items-center justify-center gap-2 rounded-lg border-l border-t border-white px-4 py-3 bg-blue-700/80 text-white text-base font-semibold shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:translate-x-[2px] hover:translate-y-[2px] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Save Address
+                <Loader2
+                  v-if="isCreateLoading || isUpdateLoading"
+                  class="w-4 h-4 mr-2 animate-spin"
+                />
+                <span>{{
+                  isCreateLoading || isUpdateLoading
+                    ? "Saving..."
+                    : isEditing
+                      ? "Save Changes"
+                      : "Save Address"
+                }}</span>
               </button>
             </div>
           </div>

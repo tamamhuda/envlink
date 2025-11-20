@@ -1,16 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { Plus, X, ChevronDown } from "lucide-vue-next";
-
-type BillingAddress = {
-  id: string;
-  address1: string;
-  address2: string | null;
-  city: string;
-  state: string;
-  zip: string;
-  country: string;
-};
+import type { BillingAddress } from "~/client";
 
 const props = defineProps({
   isOpen: {
@@ -44,6 +35,7 @@ const selectedBillingAddress = computed(() => {
 
 const handleUpdateSelectedAddress = (id: string) => {
   emit("update:selectedAddress", id);
+  console.log("Selected Address ID:", id);
   isAddressDropdownOpen.value = false;
 };
 
@@ -70,8 +62,8 @@ const closeModal = () => {
       class="relative w-full max-w-lg rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
     >
       <button
-        @click="closeModal"
         class="absolute top-4 right-4 text-[var(--text-color)] opacity-70 hover:opacity-100"
+        @click="closeModal"
       >
         <X class="w-6 h-6" />
       </button>
@@ -94,11 +86,12 @@ const closeModal = () => {
           <div class="relative">
             <button
               type="button"
-              @click="isAddressDropdownOpen = !isAddressDropdownOpen"
               class="w-full flex items-center justify-between text-left px-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb]"
+              @click="isAddressDropdownOpen = !isAddressDropdownOpen"
             >
               <span v-if="selectedBillingAddress">
-                {{ selectedBillingAddress.address1 }},
+                {{ selectedBillingAddress.customName ?? selectedBillingAddress.firstName + " " + selectedBillingAddress.lastName }} - 
+                {{ selectedBillingAddress.address }},
                 {{ selectedBillingAddress.city }}
               </span>
               <span v-else class="opacity-70">Select an address</span>
@@ -115,22 +108,31 @@ const closeModal = () => {
                 <li
                   v-for="address in billingAddresses"
                   :key="address.id"
-                  @click="handleUpdateSelectedAddress(address.id)"
                   class="px-4 py-3 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50 flex justify-between items-center"
+                  @click="handleUpdateSelectedAddress(address.id)"
                 >
                   <span class="text-sm">
-                    {{ address.address1 }}, {{ address.city }}
+                    {{ address.customName ?? address.firstName + " " + address.lastName }} - 
+                    {{ address.address }}, {{ address.city }}
                   </span>
-                  <button
-                    @click.stop="handleEditAddress(address)"
-                    class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    Edit
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <span
+                      v-if="address.isDefault"
+                     class="default inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border border-[var(--text-color)]"
+                    >
+                      Default
+                    </span>
+                    <button
+                      class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+                      @click.stop="handleEditAddress(address)"
+                    >
+                      Edit
+                    </button>
+                  </div>
                 </li>
                 <li
-                  @click="handleAddAddress"
                   class="px-4 py-3 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50 flex items-center gap-2 text-blue-600 dark:text-blue-400"
+                  @click="handleAddAddress"
                 >
                   <Plus class="w-4 h-4" />
                   <span class="text-sm font-medium">Add New Address</span>
@@ -145,8 +147,8 @@ const closeModal = () => {
             No billing address on file.
           </p>
           <button
-            @click="handleAddAddress"
             class="mt-4 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+            @click="handleAddAddress"
           >
             Add one now
           </button>

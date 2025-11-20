@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import type { BillingAddress } from "~/interfaces/api.interface";
+import type { BillingAddress } from "~/client";
 
 defineProps<{
   address: BillingAddress | null | undefined;
+  loading: boolean;
 }>();
 
-const emit = defineEmits<{
-  (e: "change"): void;
-}>();
+// const emit = defineEmits<{
+//   (e: "change"): void;
+// }>();
+
 </script>
 
 <template>
@@ -28,15 +30,28 @@ const emit = defineEmits<{
         Change
       </button>
     </div>
+
     <div
-      v-if="address"
+      v-if="loading"
+      class="mt-6 border-t border-[var(--text-color)] pt-6 text-center"
+    >
+      <p class="text-sm text-gray-500 dark:text-gray-400">
+        Loading billing address...
+      </p>
+    </div>
+    <div
+      v-else-if="address"
       class="mt-6 border-t border-[var(--text-color)] pt-6 text-sm space-y-1"
     >
       <p class="font-medium">
-        {{ address.first_name }}
-        {{ address.last_name }}
+        {{ address.customName }}
       </p>
-      <p>{{ address.address1 }}</p>
+
+      <p class="font-medium">
+        {{ address.firstName }}
+        {{ address.lastName }}
+      </p>
+      <p>{{ address.address }}</p>
       <p v-if="address.address2">
         {{ address.address2 }}
       </p>
@@ -47,7 +62,10 @@ const emit = defineEmits<{
       </p>
       <p>{{ address.country }}</p>
     </div>
-    <div v-else class="mt-6 border-t border-[var(--text-color)] pt-6 text-center">
+    <div
+      v-else
+      class="mt-6 border-t border-[var(--text-color)] pt-6 text-center"
+    >
       <p class="text-sm text-gray-500 dark:text-gray-400">
         No default billing address selected.
       </p>

@@ -4,6 +4,7 @@ import {
   definePageMeta,
   onMounted,
   ref,
+  useBillingAddressStore,
   usePaymentMethodStore,
   watch,
 } from "#imports";
@@ -15,42 +16,21 @@ import PaymentMethodsList from "~/components/PaymentMethodsList.vue";
 import BillingAddressDisplay from "~/components/BillingAddressDisplay.vue";
 import { Plus } from "lucide-vue-next";
 import { cloneDeep } from "lodash";
-import type { PaymentMethod } from "~/client";
+import type { BillingAddress, PaymentMethod } from "~/client";
 
 definePageMeta({ layout: "account" });
 
+const pmStore = usePaymentMethodStore();
+const billAddressStore = useBillingAddressStore();
 const isPaymentFormModalOpen = ref(false);
 const paymentMethodToEdit = ref<PaymentMethod | null>(null);
 const isBillingModalOpen = ref(false);
 const isBillingFormModalOpen = ref(false);
-const billingAddresses = ref<any[]>([
-  {
-    id: "ba_1",
-    first_name: "John",
-    last_name: "Doe",
-    address1: "123 Main St",
-    address2: "Apt 4B",
-    city: "Anytown",
-    state: "CA",
-    zip: "12345",
-    country: "USA",
-  },
-]);
-const selectedBillingAddressId = ref<string | null>(
-  billingAddresses.value[0]?.id || null,
-);
-
-const selectedBillingAddress = computed(() => {
-  return billingAddresses.value.find(
-    (a) => a.id === selectedBillingAddressId.value,
-  );
-});
-
-const addressToEdit = ref<any | null>(null);
-
-const pmStore = usePaymentMethodStore();
-
+const addressToEdit = ref<BillingAddress | null>(null);
 const paymntMethods = computed(() => pmStore.paymentMethods);
+const billingAddresses = computed<BillingAddress[]>(
+  () => billAddressStore.billingAddresses,
+);
 
 const localPaymentMethods = ref<PaymentMethod[]>([]);
 
@@ -61,6 +41,16 @@ watch(
   },
   { deep: true },
 );
+const selectedBillingAddressId = ref<string | null>(
+  billingAddresses.value[0]?.id || null,
+);
+
+const selectedBillingAddress = ref<BillingAddress | null>(null);
+
+const defaultBillingAddress = computed(() => {
+  if (billingAddresses.value.length === 1) return billingAddresses.value[0];
+  return billingAddresses.value.find((a) => a.isDefault);
+});
 
 // drag handler
 const onDragEnd = () => {
@@ -83,9 +73,16 @@ const handleUpdatePaymentMethod = (updatedPm: PaymentMethod) => {
 };
 
 onMounted(async () => {
-  await pmStore.initializedPaymentMethods();
-  if (pmStore.initialized) {
+  await Promise.all([
+    pmStore.initializedPaymentMethods(),
+    billAddressStore.initializeBillingAddress(),
+  ]);
+  if (pmStore.initialized && billAddressStore.initialized) {
     localPaymentMethods.value = cloneDeep(paymntMethods.value);
+    if (defaultBillingAddress.value) {
+      selectedBillingAddress.value = defaultBillingAddress.value;
+      selectedBillingAddressId.value = defaultBillingAddress.value.id;
+    }
   }
 });
 
@@ -123,30 +120,8 @@ const handleAddNewAddress = () => {
   openAddAddressModal();
 };
 
-const handleSaveBillingAddress = (address: any | Omit<any, "id">) => {
-  if ("id" in address && address.id) {
-    const index = billingAddresses.value.findIndex((a) => a.id === address.id);
-    if (index !== -1) {
-      billingAddresses.value[index] = address as any;
-    }
-  } else {
-    const newAddress: any = {
-      ...address,
-      id: `ba_${Date.now()}`,
-    } as any;
-    billingAddresses.value.push(newAddress);
-    selectedBillingAddressId.value = newAddress.id;
-  }
-};
-
 const handleDeleteBillingAddress = (addressId: string) => {
-  const index = billingAddresses.value.findIndex((a) => a.id === addressId);
-  if (index !== -1) {
-    billingAddresses.value.splice(index, 1);
-    if (selectedBillingAddressId.value === addressId) {
-      selectedBillingAddressId.value = billingAddresses.value[0]?.id || null;
-    }
-  }
+  console.log(addressId);
   closeBillingFormModal();
 };
 
@@ -190,6 +165,7 @@ const handleUpdateSelectedAddress = (id: string) => {
       </div>
 
       <BillingAddressDisplay
+        :loading="!billAddressStore.initialized"
         :address="selectedBillingAddress"
         @change="isBillingModalOpen = true"
       />
@@ -221,7 +197,6 @@ const handleUpdateSelectedAddress = (id: string) => {
       :is-open="isBillingFormModalOpen"
       :editing-address="addressToEdit"
       @close="closeBillingFormModal"
-      @save-billing-address="handleSaveBillingAddress"
       @delete-billing-address="handleDeleteBillingAddress"
     />
   </Content>

@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { cloneDeep, isEqual } from "lodash";
 
-import { useEnvlink, usePaymentMethodApi } from "#imports";
+import { usePaymentMethodApi } from "#imports";
 import type { PaymentMethod } from "~/client";
 
 type PaymentMethodState = {
@@ -18,20 +18,15 @@ export const usePaymentMethodStore = defineStore("payment-methods", {
   }),
 
   actions: {
-    /** 🔄 Initialize all payment methods from API */
+    async setPaymentMethods(data: PaymentMethod[]) {
+      this.paymentMethods = data;
+      this.tempPaymentMethods = cloneDeep(data);
+    },
+    /** Initialize all payment methods from API */
     async initializedPaymentMethods() {
       if (this.initialized) return;
-      const paymentMethods = usePaymentMethodApi();
-      const envlink = useEnvlink();
-      const { execute, response } = envlink.paymentMethods.getAll();
-      console.log("Payment Methods initialized");
-      await execute();
-
-      if (response.value) {
-        this.paymentMethods = response.value.data;
-        this.tempPaymentMethods = cloneDeep(response.value.data);
-      }
-
+      const { getAllPaymentMethods } = usePaymentMethodApi().getAll();
+      await getAllPaymentMethods();
       this.initialized = true;
     },
 

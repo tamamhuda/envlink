@@ -12,10 +12,10 @@ import {
   Loader2,
   CheckCircle,
 } from "lucide-vue-next";
-import type { BillingAddress } from "~/interfaces/api.interface";
+
 import { useNuxtApp } from "#app";
 import { useAuthStore, usePaymentMethodApi } from "#imports";
-import type { PaymentMethod } from "~/client";
+import type { BillingAddress, PaymentMethod } from "~/client";
 
 const xendit = useNuxtApp().$config.public.xendit;
 const paymentMethod = usePaymentMethodApi();
@@ -130,7 +130,7 @@ const {
 } = paymentMethod.getById();
 
 const createPaymentMethod = async () => {
-  if (!user) return;
+  if (!user || !selectedAddress.value) return;
 
   errorMessage.value = null;
   isLoading.value = true;
@@ -161,6 +161,15 @@ const createPaymentMethod = async () => {
       throw validationError;
     }
 
+    const billing_information = {
+      country: selectedAddress.value.country,
+      province_state: selectedAddress.value.state,
+      postal_code: selectedAddress.value.zip,
+      city: selectedAddress.value.city,
+      street_line1: selectedAddress.value.address,
+      street_line2: selectedAddress.value.address2,
+    };
+
     const reqData = {
       type: "CARD",
       customer_id: user.customerId,
@@ -170,6 +179,7 @@ const createPaymentMethod = async () => {
         channel_properties: {
           skip_three_d_secure: true,
         },
+        billing_information,
         card_information: {
           card_number: newCard.value.card_number,
           expiry_month: newCard.value.expiry_month,
@@ -194,8 +204,6 @@ const createPaymentMethod = async () => {
         resolve(res);
       });
     });
-
-    console.log(resp, "Here is the response sent by the server");
 
     await getPaymentMethodById(resp.id);
     let retryCount = 0;
@@ -441,9 +449,9 @@ const goToAddAddress = () => {
                 @click="isDropdownOpen = !isDropdownOpen"
               >
                 <span v-if="selectedAddress">
-                  {{ selectedAddress.first_name }}
-                  {{ selectedAddress.last_name }} -
-                  {{ selectedAddress.address1 }}, {{ selectedAddress.city }}
+                  {{ selectedAddress.firstName }}
+                  {{ selectedAddress.lastName }} -
+                  {{ selectedAddress.address }}, {{ selectedAddress.city }}
                 </span>
                 <span v-else class="opacity-70">Select an address</span>
                 <ChevronDown
@@ -462,8 +470,8 @@ const goToAddAddress = () => {
                     class="px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50"
                     @click="selectAddress(address.id)"
                   >
-                    {{ address.first_name }} {{ address.last_name }} -
-                    {{ address.address1 }}, {{ address.city }}
+                    {{ address.firstName }} {{ address.lastName }} -
+                    {{ address.address }}, {{ address.city }}
                   </li>
                   <li>
                     <button

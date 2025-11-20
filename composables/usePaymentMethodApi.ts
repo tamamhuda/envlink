@@ -1,4 +1,4 @@
-import { useEnvlink } from "#imports";
+import { useEnvlink, usePaymentMethodStore } from "#imports";
 import type {
   SortPaymentMethodsRequestInner,
   ValidatePaymentMethodRequest,
@@ -6,6 +6,7 @@ import type {
 
 export function usePaymentMethodApi() {
   const envlink = useEnvlink();
+  const { setPaymentMethods } = usePaymentMethodStore();
 
   const validate = () => {
     const { execute, ...rest } = envlink.paymentMethods.validate();
@@ -21,6 +22,19 @@ export function usePaymentMethodApi() {
     return { validatePaymentMethod, ...rest };
   };
 
+  const getAll = () => {
+    const { execute, response, ...rest } = envlink.paymentMethods.getAll();
+
+    const getAllPaymentMethods = async () => {
+      await execute();
+      if (response.value) {
+        setPaymentMethods(response.value.data);
+      }
+    };
+
+    return { getAllPaymentMethods, ...rest };
+  };
+
   const getById = () => {
     const { execute, ...rest } = envlink.paymentMethods.getById();
 
@@ -31,12 +45,6 @@ export function usePaymentMethodApi() {
     };
 
     return { getPaymentMethodById, ...rest };
-  };
-
-  const getAll = () => {
-    const { execute, ...rest } = envlink.paymentMethods.getAll();
-
-    return { getAllPaymentMethods: execute, ...rest };
   };
 
   const sort = () => {

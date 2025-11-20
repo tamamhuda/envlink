@@ -1,8 +1,8 @@
 <template>
   <div
-    class="flex flex-1 w-full h-full flex-col text-[var(--text-color)] transition-colors duration-300"
+    class="flex flex-1 flex-col text-[var(--text-color)] transition-colors duration-300"
   >
-    <div class="flex items-center space-x-2 px-4 pt-6">
+    <div class="flex items-center space-x-2 sm:px-4 lg:px-8 pt-6">
       <template v-for="(item, index) in breadcrumbs" :key="item.name">
         <div class="flex items-center space-x-2">
           <component
@@ -34,11 +34,11 @@
         />
       </template>
     </div>
-    <main class="flex flex-1 py-6 sm:px-4 lg:px-8">
+    <main class="flex h-full relative flex-1 py-6 sm:px-4 lg:px-8">
       <div v-if="isReady" class="w-full">
         <slot />
       </div>
-      <div v-else class="flex justify-center items-center w-full">
+      <div v-else class="flex flex-1 justify-center items-center w-full h-full">
         <Loading />
       </div>
     </main>

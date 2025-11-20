@@ -1,5 +1,5 @@
 <template>
-  <div class="max-w-full text-start">
+  <div :class="['max-w-full  text-start', props.class]">
     <label
       v-if="label"
       :for="id"
@@ -20,6 +20,7 @@
         />
       </div>
       <input
+        v-bind="$attrs"
         :id="id"
         :type="inputType"
         :value="modelValue ?? ''"
@@ -55,6 +56,10 @@
 import { ref, computed } from "vue";
 import { Eye, EyeOff } from "lucide-vue-next";
 
+defineOptions({
+  inheritAttrs: false,
+});
+
 interface Props {
   id: string;
   label: string;
@@ -64,6 +69,7 @@ interface Props {
   required?: boolean;
   error?: string;
   disabled?: boolean;
+  class?: string;
   icon?: Function | object;
 }
 
@@ -74,6 +80,7 @@ const props = withDefaults(defineProps<Props>(), {
   error: "",
   modelValue: "",
   disabled: false,
+  class: "",
   icon: undefined,
 });
 

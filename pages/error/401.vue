@@ -41,8 +41,9 @@ const hasCookie = computed(() => auth.hasCookie() || false);
 const isClientReady = ref(false);
 const lastChecked = ref<Date | null>(null);
 
-const redirectToLogin = () => {
-  navigateTo("/login");
+const redirectToLogin = async () => {
+  auth.clearAuth();
+  await navigateTo("/login");
 };
 
 onMounted(async () => {

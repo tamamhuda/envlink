@@ -1,43 +1,38 @@
-import { useAuthStore } from "#imports";
-import { createEnvlinkClient } from "~/client";
+import { useAuthStore, useRouter } from "#imports";
+import { EnvlinkClient } from "~/client";
 
-import { Configuration, instanceOfErrorResponse } from "~/client/src/generated";
-import type { AuthConfig } from "~/client/src/wrap/types";
+import { Configuration } from "~/client/src/generated";
+
+import type { AuthConfig, EnvlinkErrorContext } from "~/client/src/wrap/types";
 
 export function useEnvlink() {
-  const auth = useAuthStore();
+  const authStore = useAuthStore();
 
-  const authConfig: AuthConfig = {
+  const auth: AuthConfig = {
     getTokens: () => {
-      if (!auth.tokens) return null;
-      return auth.tokens;
+      const tokens = authStore.getTokens();
+      if (!tokens) return null;
+      return tokens;
     },
     setTokens: (tokens) => {
-      auth.setTokens(tokens);
-    },
-    onRefreshFailed: () => {
-      console.log("Envlink client: Refresh failed Callback");
+      authStore.setTokens(tokens);
     },
   };
 
   const config = new Configuration({
-    accessToken: auth.tokens?.accessToken,
+    accessToken: authStore.tokens?.accessToken,
     basePath: "https://local-nest.utadev.app",
-    middleware: [
-      {
-        post: async ({ response }) => {
-          console.log("Envlink client: Middleware ");
-          const res = await response.json();
-          const err = instanceOfErrorResponse(res) ? res : null;
-          // only log when err.status between 400 and 500
-          if (err && err.status && err.status >= 400 && err.status < 500) {
-            console.log("Envlink client: Response Error", err);
-          }
-        },
-      },
-    ],
   });
 
-  // return new EnvlinkClient({ config, auth: authConfig });
-  return createEnvlinkClient(config, authConfig);
+  const router = useRouter();
+
+  const onError = async (error: EnvlinkErrorContext) => {
+    if (error.type === "REFRESH_FAILED" || error.type === "NETWORK_ERROR") {
+      router.push("/error/401");
+    } else {
+      console.log(error);
+    }
+  };
+
+  return new EnvlinkClient({ config, auth, onError });
 }

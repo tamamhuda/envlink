@@ -1,0 +1,5 @@
+{
+    "editor.inlayHints.fontSize": 4,
+    "vue.inlayHints.inlineHandlerLeading": true,
+    "editor.inlineCompletionsAccessibilityVerbose": true
+}

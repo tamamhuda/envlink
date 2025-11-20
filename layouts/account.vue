@@ -14,7 +14,9 @@ const isUpgradePage = computed(() =>
 
 <template>
   <NuxtLayout name="authenticated">
-    <div class="flex h-full bg-[var(--bg-color)] text-[var(--text-color)]">
+    <div
+      class="flex flex-1 w-full min-h-full bg-[var(--bg-color)] text-[var(--text-color)]"
+    >
       <!-- Sidebar -->
       <aside
         :class="[
@@ -56,7 +58,7 @@ const isUpgradePage = computed(() =>
       </aside>
 
       <!-- Main content -->
-      <main class="flex-1 overflow-y-auto p-6 sm:p-8">
+      <main class="flex-1 flex overflow-y-auto min-h-full p-6 sm:p-8">
         <NuxtPage />
       </main>
 

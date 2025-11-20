@@ -1,15 +1,22 @@
 import { defineNuxtRouteMiddleware, navigateTo } from "#app";
-import { useSubscriptionStore } from "#imports";
+import { computed, useSubscriptionStore } from "#imports";
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const subscription = useSubscriptionStore();
 
   // Wait until subscription store is initialized
-  if (!subscription.initialized && import.meta.client) {
-    await subscription.initializeUpgrade();
+  if (import.meta.client) {
+    await subscription.initializeSubscription();
   }
 
   const activeSub = subscription.activeSubscription;
+  const accessableSuccess = computed(() => Boolean(subscription.pendingSubscription && subscription.isUpgradeRequested))
+  const isUpgradeRequestSuccessRoute = to.path.includes("/upgrade/success"); 
+  const isRequireUpgrabaleRoute = ["/upgrade/confirm", "/upgrade/preview"].some((p) => to.path.includes(p))
+
+  if (isUpgradeRequestSuccessRoute && !accessableSuccess.value) {
+    return navigateTo("/account/subscriptions");
+  }
 
   // Redirect if user has no active subscription
   if (!activeSub && subscription.initialized) {
@@ -23,7 +30,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // Prevent access to confirm/preview if no selected plan or option
   if (
-    ["/upgrade/confirm", "/upgrade/preview"].some((p) => to.path.includes(p)) &&
+    isRequireUpgrabaleRoute &&
     !subscription.selectedPlan
   ) {
     return navigateTo("/account/subscriptions/upgrade");

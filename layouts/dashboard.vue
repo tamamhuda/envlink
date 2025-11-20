@@ -35,7 +35,7 @@
       </aside>
 
       <!-- Main content -->
-      <main class="flex-1 overflow-y-auto p-6 sm:p-8">
+      <main class="flex-1 overflow-y-auto min-h-screen h-full p-6 sm:p-8">
         <NuxtPage />
       </main>
 

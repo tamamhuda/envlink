@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   computed,
+  navigateTo,
   onMounted,
   onUnmounted,
   ref,
@@ -55,6 +56,10 @@ const toggleNotifications = () => {
 
 const handleLogout = async () => {
   closeDropdown();
+  if (!isAuthenticated.value) {
+    auth.clearAuth();
+    return await navigateTo("/login");
+  }
   await logout();
 };
 
@@ -298,8 +303,9 @@ onUnmounted(() => {
       </div>
     </header>
 
-    <slot />
-
+    <main class="max-w-screen-2xl mx-auto min-w-max w-full">
+      <slot />
+    </main>
     <!-- Footer -->
     <footer
       class="border-t border-[var(--border-color)] text-center py-4 text-sm mt-auto max-w-[960px] mx-auto w-full text-gray-600 dark:text-gray-400"

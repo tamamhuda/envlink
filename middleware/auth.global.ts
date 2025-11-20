@@ -1,39 +1,56 @@
-import { computed, useAuthStore, useSubscriptionStore } from "#imports";
+import {
+  useAuthStore,
+  useSubscriptionStore,
+  useTransactionsStore,
+} from "#imports";
 import { defineNuxtRouteMiddleware, navigateTo } from "nuxt/app";
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore();
 
-  const publicRoutes = [
-    "/login",
-    "/register",
-    "/forgot-password",
-    "/reset-password",
-    "/",
-  ];
   const privateRoutes = ["/dashboard", "/account", "/settings"];
 
-  const isPublic = publicRoutes.some((route) => to.path.startsWith(route));
-  const isPrivate = privateRoutes.some((route) => to.path.startsWith(route));
-  const hasCookie = auth.hasCookie();
-  const isVerified = computed(() => auth.user?.providers.isVerified);
+  const isPrivate = privateRoutes.some((r) => to.path.startsWith(r));
 
-  // In your route middleware or entry logic
-  if (!hasCookie && !isPublic) {
-    // No cookie and private page
+  const hasCookie = auth.hasCookie();
+
+  // If no cookie and private → login
+  if (!hasCookie && isPrivate) {
     return navigateTo("/login");
   }
 
-  if (hasCookie) {
+  // If user has cookie → load auth state
+  if (hasCookie && !auth.initialized) {
     await auth.initializeAuth();
+  }
 
-    if (
-      ["/login", "/register", "/dashboard"].includes(to.path) &&
-      !isVerified.value
-    ) {
+  const isAuth = auth.isAuthenticated === true;
+  const isVerified = auth.user?.providers.isVerified === true;
+
+  // If authenticated but not verified
+  if (isAuth && !isVerified) {
+    const redirectBlocked = ["/login", "/register", "/dashboard"];
+    if (redirectBlocked.some((r) => to.path.startsWith(r))) {
       return navigateTo("/auth/verify");
     }
-  } else if (!auth.isAuthenticated && isPrivate) {
+  }
+
+  // initialized subscriptions
+  if (isAuth && auth.initialized && import.meta.client) {
+    await useSubscriptionStore().initializeSubscription();
+    await useTransactionsStore().initializeTransactions();
+  }
+
+  // Allow authenticated private access
+  if (isAuth && isPrivate) {
+    return;
+  }
+
+  // // If cookie exists but auth failed after initialization → 401
+  if (hasCookie && auth.initialized && !isAuth && isPrivate) {
+    console.log(auth.initialized);
     return navigateTo("/error/401");
   }
+
+  return;
 });

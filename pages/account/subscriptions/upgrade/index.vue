@@ -7,6 +7,7 @@ import {
 } from "#imports";
 import Content from "~/components/Content.vue";
 import { Check } from "lucide-vue-next";
+import type { SubscriptionUpgradeOption } from "~/client";
 
 definePageMeta({
   layout: "account",
@@ -14,18 +15,27 @@ definePageMeta({
 
 const subscription = useSubscriptionStore();
 
+const badge = (plan: SubscriptionUpgradeOption) => {
+  if (plan.name === "Enterprise") {
+    return {
+      text: "Soon",
+    };
+  }
+  if (plan.name === "Starter") {
+    return {
+      text: "Most Popular",
+    };
+  }
+  return null;
+};
+
 const plans = computed(() =>
   subscription.availablePlans.map((plan) => {
     return {
       ...plan,
-      badge:
-        plan.name === "Starter"
-          ? {
-              text: "Most Popular",
-            }
-          : null,
+      badge: badge(plan),
     };
-  }),
+  })
 );
 
 const formatPrice = (price: number, name: string) => {
@@ -43,7 +53,7 @@ const handleSelectPlan = (id: string) => {
 
 <template>
   <Content :is-ready="subscription.initialized">
-    <div class="py-12 px-4 sm:px-6 lg:px-8">
+    <div class="py-12 px-4 sm:px-6 lg:px-4 min-h-full">
       <!-- Header -->
       <div class="text-center mb-12 max-w-3xl mx-auto">
         <h1 class="text-4xl font-bold tracking-tight sm:text-5xl">
@@ -56,12 +66,12 @@ const handleSelectPlan = (id: string) => {
 
       <!-- Plans Grid -->
       <div
-        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto"
+        class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 max-w-full w-full"
       >
         <div
           v-for="plan in plans"
           :key="plan.id"
-          class="relative flex flex-col p-8 border border-[var(--text-color)] rounded-md bg-transparent text-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)] transition-all hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0_var(--text-color)]"
+          class="box-shadow-card p-8 flex flex-col relative hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[4px_4px_0_var(--shadow-color)] transition-all"
         >
           <!-- Badge -->
           <div
@@ -69,7 +79,7 @@ const handleSelectPlan = (id: string) => {
             class="absolute -top-4 left-1/2 transform -translate-x-1/2"
           >
             <span
-              class="inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-wide shadow-sm bg-[var(--text-color)] text-[var(--bg-color)]"
+              class="inline-flex items-center px-4 py-1 rounded-full text-xs font-semibold uppercase tracking-wide shadow-sm bg-(--primary-color) text-white"
             >
               {{ plan.badge.text }}
             </span>
@@ -109,9 +119,7 @@ const handleSelectPlan = (id: string) => {
                 :key="index"
                 class="flex items-start"
               >
-                <Check
-                  class="flex-shrink-0 w-5 h-5 text-[var(--text-color)] mt-0.5"
-                />
+                <Check class="shrink-0 w-5 h-5 text-(--text-color) mt-0.5" />
                 <span class="ml-3 text-sm">
                   {{ feature }}
                 </span>
@@ -120,23 +128,21 @@ const handleSelectPlan = (id: string) => {
           </div>
 
           <!-- CTA Button -->
-          <div class="pt-0">
+          <div class="pt-0 flex items-center justify-center">
             <button
-              :disabled="!plan.upgradable"
-              class="w-full inline-flex items-center justify-center gap-2 rounded-lg border-l border-t border-white px-4 py-3 text-base font-semibold shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:shadow-[inset_-3px_-3px_0_var(--text-color),inset_3px_3px_0_#0b0d40] transition-all focus:outline-none hover:translate-x-[2px] hover:translate-y-[2px]"
-              :class="[
-                !plan.upgradable
-                  ? 'bg-gray-400 text-gray-800 cursor-not-allowed'
-                  : plan.badge
-                    ? 'bg-blue-700/80 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200',
-              ]"
+              :disabled="!plan.upgradable || plan.name === 'Enterprise'"
+              :class="{
+                'button-box':
+                  plan.popular || plan.upgradable || plan.name === 'Enterprise',
+                'button-box verbose':
+                  !plan.upgradable && plan.name !== 'Enterprise',
+              }"
               @click="handleSelectPlan(plan.id)"
             >
               {{
-                plan.name === "Enterprise"
-                  ? "Contact Sales"
-                  : plan.upgradable
+                plan.name === "Enterprise" || plan.name === "Free"
+                  ? plan.cta
+                  : plan.name !== plan.currentPlan
                     ? "Choose Plan"
                     : "Current Plan"
               }}

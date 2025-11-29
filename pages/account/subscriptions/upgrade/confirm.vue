@@ -12,13 +12,13 @@ import {
 } from "#imports";
 import type { PaymentMethod, BillingAddress } from "~/client";
 import BillingAddressDisplay from "~/components/BillingAddressDisplay.vue";
-import { Info, Plus } from "lucide-vue-next";
+import { Info, Loader2, Plus } from "lucide-vue-next";
 
 definePageMeta({ layout: "account", middleware: "require-upgradable" });
 
 const subscription = useSubscriptionStore();
 
-const metadata = computed(() => subscription.upgradeMetadata);
+const upgradeDetails = computed(() => subscription.upgradeMetadata);
 
 const upgradeData = computed(() => subscription.upgradeRequest);
 
@@ -169,7 +169,6 @@ async function handleConfirmAndPay() {
   const id = subscription.activeSubscription?.id;
   if (!id || !subscription.upgradeRequest) return;
   errorMessage.value = null;
-
   await upgrade(id, subscription.upgradeRequest);
   if (response.value) {
     return await navigateTo("/account/subscriptions/upgrade/success");
@@ -182,7 +181,7 @@ async function handleConfirmAndPay() {
 </script>
 
 <template>
-  <Content :is-ready="Boolean(metadata)">
+  <Content :is-ready="Boolean(upgradeDetails)">
     <div class="py-12 px-4 sm:px-6 lg:px-8">
       <!-- Header -->
       <div class="text-center mb-12 max-w-3xl mx-auto">
@@ -195,7 +194,7 @@ async function handleConfirmAndPay() {
       </div>
 
       <div
-        v-if="selectedPlan && metadata && upgradeData"
+        v-if="selectedPlan && upgradeDetails && upgradeData"
         class="grid grid-cols-1 lg:grid-cols-5 gap-8 max-w-7xl mx-auto"
       >
         <!-- Left Column: Payment and Billing -->
@@ -269,16 +268,20 @@ async function handleConfirmAndPay() {
             <div class="text-sm space-y-2">
               <div class="flex justify-between">
                 <span class="opacity-80">Billing Interval</span>
-                <span class="font-medium">{{ metadata.intervalLabel }}</span>
+                <span class="font-medium">{{
+                  upgradeDetails.intervalLabel
+                }}</span>
               </div>
               <div class="flex justify-between">
                 <span class="opacity-80">Subscription Duration</span>
-                <span class="font-medium">{{ metadata.recurrenceLabel }}</span>
+                <span class="font-medium">{{
+                  upgradeDetails.recurrenceLabel
+                }}</span>
               </div>
               <div class="flex justify-between">
                 <span class="opacity-80">Upgrade Timing</span>
                 <span class="font-medium">{{
-                  metadata.strategy === "UPGRADE_IMMEDIATELY"
+                  upgradeDetails.strategy === "UPGRADE_IMMEDIATELY"
                     ? "Immediately"
                     : "End of Cycle"
                 }}</span>
@@ -290,33 +293,40 @@ async function handleConfirmAndPay() {
             <!-- Pricing Summary -->
             <div class="space-y-3 text-sm">
               <div class="flex justify-between">
-                <span>Base Price ({{ metadata.intervalLabel }})</span>
-                <span>{{ formatCurrency(metadata.basePrice) }}</span>
+                <span>Base Price ({{ upgradeDetails.intervalLabel }})</span>
+                <span>{{ formatCurrency(upgradeDetails.basePrice) }}</span>
               </div>
               <div
-                v-if="metadata.intervalDiscount.rate"
+                v-if="upgradeDetails.intervalDiscount"
                 class="flex justify-between"
               >
                 <span
                   >Billing Interval Discount ({{
-                    metadata.intervalDiscount.rate * 100
+                    upgradeDetails.intervalDiscount.rate * 100
                   }}%)</span
                 >
                 <span
-                  >-{{ formatCurrency(metadata.intervalDiscount.amount) }}</span
-                >
-              </div>
-              <div v-if="metadata.promoDiscount" class="flex justify-between">
-                <span
-                  >Promo Code ({{ metadata.promoDiscount.code }} -
-                  {{ metadata.promoDiscount.rate * 100 }}%)</span
-                >
-                <span
-                  >-{{ formatCurrency(metadata.promoDiscount.amount) }}</span
+                  >-{{
+                    formatCurrency(upgradeDetails.intervalDiscount.amount)
+                  }}</span
                 >
               </div>
               <div
-                v-if="metadata.proratedCredit.amount > 0"
+                v-if="upgradeDetails.promoDiscount"
+                class="flex justify-between"
+              >
+                <span
+                  >Promo Code ({{ upgradeDetails.promoDiscount.code }} -
+                  {{ upgradeDetails.promoDiscount.rate * 100 }}%)</span
+                >
+                <span
+                  >-{{
+                    formatCurrency(upgradeDetails.promoDiscount.amount)
+                  }}</span
+                >
+              </div>
+              <div
+                v-if="upgradeDetails.proratedCredit.amount > 0"
                 class="flex justify-between"
               >
                 <div class="flex items-center">
@@ -334,14 +344,18 @@ async function handleConfirmAndPay() {
                   </div>
                 </div>
                 <span
-                  >-{{ formatCurrency(metadata.proratedCredit.amount) }}</span
+                  >-{{
+                    formatCurrency(upgradeDetails.proratedCredit.amount)
+                  }}</span
                 >
               </div>
               <div
                 class="flex justify-between font-bold text-lg border-t border-[var(--text-color)] pt-3 mt-3"
               >
                 <span>Total Estimate</span>
-                <span>{{ formatCurrency(metadata.totalPrice ?? 0) }}</span>
+                <span>{{
+                  formatCurrency(upgradeDetails.totalPrice ?? 0)
+                }}</span>
               </div>
             </div>
 

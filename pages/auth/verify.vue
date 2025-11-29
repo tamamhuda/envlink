@@ -12,6 +12,7 @@ import {
 import AuthenticatedLayout from "~/layouts/authenticated.vue";
 import EmptyLayout from "~/layouts/empty.vue";
 import { instanceOfErrorResponse } from "~/client/src/generated";
+import Loader from "~/components/Loader.vue";
 
 definePageMeta({ layout: "empty" });
 
@@ -34,14 +35,19 @@ const message = ref<{ text: string; type: "success" | "error" | null }>({
 // Derived state
 const token = computed(() => String(route.query.token || "") || undefined);
 const fromRegister = computed(
-  () => route.query.from === "register" && user.value?.lastLoginAt == null,
+  () => route.query.from === "register" && user.value?.lastLoginAt == null
 );
 const isRequestVerify = computed(() => !!token.value);
 const isAuthenticated = computed(() => auth.isAuthenticated);
 const isVerified = computed(() => user.value?.providers.isVerified || false);
 
 // API handlers
-const { verify, error: errorVerify, pending: pendingVerify } = authApi.verify();
+const {
+  verify,
+  response: verifyResponse,
+  error: errorVerify,
+  pending: pendingVerify,
+} = authApi.verify();
 
 const {
   resendVerification,
@@ -58,12 +64,12 @@ const isResendDisabled = computed(() => {
 const pageTitle = computed(() =>
   fromRegister.value
     ? "Registration Successful"
-    : "Account Verification Required",
+    : "Account Verification Required"
 );
 const pageDescription = computed(() =>
   fromRegister.value
     ? "You have successfully registered. Please verify your email to activate your account."
-    : "Please verify your email to access all features.",
+    : "Please verify your email to access all features."
 );
 
 // Actions
@@ -103,7 +109,14 @@ onMounted(async () => {
   if (isRequestVerify.value && token.value) {
     await verify(token.value);
 
-    if (errorVerify.value && instanceOfErrorResponse(errorVerify.value)) {
+    if (verifyResponse.value) {
+      message.value = {
+        text: "Your account has been successfully verified.",
+        type: "success",
+      };
+    }
+
+    if (errorVerify.value) {
       const status = errorVerify.value.status;
 
       if (status === 403) {
@@ -118,22 +131,17 @@ onMounted(async () => {
           text: "Your account is already verified.",
           type: "success",
         };
+      } else {
+        message.value = {
+          text: "Verification failed. Please try again later.",
+          type: "error",
+        };
       }
-    } else {
-      message.value = {
-        text: "Verification failed. Please try again later.",
-        type: "error",
-      };
     }
 
     isClientReady.value = true;
     return;
   }
-
-  message.value = {
-    text: "Your account has been successfully verified.",
-    type: "success",
-  };
 
   // Redirect unauthenticated users if no verification token
   if (!isAuthenticated.value && !isRequestVerify.value) {
@@ -150,13 +158,13 @@ onMounted(async () => {
     :is="isClient && isAuthenticated ? AuthenticatedLayout : EmptyLayout"
   >
     <main
-      class="text-center h-full items-center justify-center w-full flex flex-1 my-14"
+      class="text-center h-full items-center justify-center w-screen flex flex-1 my-14"
     >
       <div
-        class="flex w-full min-h-full flex-col items-center justify-center py-12 sm:px-6 lg:px-8 bg-[var(--bg-color)] text-[var(--text-color)] transition-colors"
+        class="flex flex-1 w-full min-h-full flex-col items-center justify-center py-12 sm:px-6 lg:px-8 bg-(--bg-color) text-(--text-color)"
       >
         <!-- Loading -->
-        <div v-if="!isClientReady || pendingVerify"><Loading /></div>
+        <div v-if="!isClientReady || pendingVerify"><Loader /></div>
 
         <!-- Case 1: Verification via token -->
         <div
@@ -164,7 +172,7 @@ onMounted(async () => {
           class="sm:mx-auto sm:w-full sm:max-w-md"
         >
           <div
-            class="mt-8 py-8 px-4 shadow-[4px_4px_0_var(--text-color)] sm:rounded-lg sm:px-10 border border-[var(--text-color)] bg-[var(--bg-color)] text-center"
+            class="mt-8 py-8 px-4 shadow-[4px_4px_0_var(--text-color)] sm:rounded-lg sm:px-10 border border-[--text-color] bg-[--bg-color] text-center"
           >
             <h2 class="text-2xl font-bold mb-4">Account Verification</h2>
 
@@ -191,14 +199,14 @@ onMounted(async () => {
             >
               <button
                 v-if="isAuthenticated"
-                class="rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all"
+                class="inline-flex justify-center items-center rounded-md border border-(--border-color) px-4 py-2 font-medium shadow-[4px_4px_0_var(--shadow-color)] transition-all bg-(--primary-color) text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--primary-color) hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--shadow-color)]"
                 @click="navigateTo('/dashboard')"
               >
                 Go to Dashboard
               </button>
               <button
                 v-else
-                class="rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all"
+                class="rounded-md border border-[--text-color] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all"
                 @click="handleLoginRedirect"
               >
                 Go to Login
@@ -209,12 +217,10 @@ onMounted(async () => {
             <div v-else-if="message.type === 'error' && isAuthenticated">
               <button
                 :disabled="isResendDisabled || isResending"
-                class="mt-4 rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] transition-all"
+                class="button-box"
                 :class="{
                   'opacity-50 cursor-not-allowed':
                     isResendDisabled || isResending,
-                  'hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)]':
-                    !isResendDisabled && !isResending,
                 }"
                 @click="handleResend"
               >
@@ -245,10 +251,7 @@ onMounted(async () => {
 
             <!-- Error + unauthenticated -->
             <div v-else-if="message.type === 'error' && !isAuthenticated">
-              <button
-                class="mt-4 rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all"
-                @click="handleLoginRedirect"
-              >
+              <button class="button-box" @click="handleLoginRedirect">
                 Go to Login
               </button>
             </div>
@@ -256,7 +259,7 @@ onMounted(async () => {
         </div>
 
         <!-- Case 2: Authenticated but not verified -->
-        <div v-else class="sm:mx-auto sm:w-full sm:max-w-md">
+        <div v-else class="sm:mx-auto sm:w-full sm:max-w-md space-y-5">
           <div class="text-center">
             <h2 class="mt-6 text-3xl font-bold tracking-tight">
               {{ pageTitle }}
@@ -264,9 +267,7 @@ onMounted(async () => {
             <p class="mt-2 text-sm opacity-80">{{ pageDescription }}</p>
           </div>
 
-          <div
-            class="mt-8 py-8 px-4 shadow-[4px_4px_0_var(--text-color)] sm:rounded-lg sm:px-10 border border-[var(--text-color)] bg-[var(--bg-color)] transition-colors text-center"
-          >
+          <div class="box-shadow-card p-8">
             <p class="mb-4">Your email: {{ user?.email }}</p>
 
             <!-- Messages -->
@@ -286,11 +287,11 @@ onMounted(async () => {
 
             <!-- Resend Button -->
             <button
-              class="mb-2 flex-1 rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] transition-all bg-transparent"
+              class="inline-flex justify-center items-center rounded-md border border-(--border-color) px-4 py-2 font-medium shadow-[4px_4px_0_var(--shadow-color)] transition-all bg-(--primary-color) text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-(--primary-color)"
               :class="{
-                'opacity-50 cursor-not-allowed':
+                ' cursor-not-allowed opacity-50':
                   isResendDisabled || isResending,
-                'hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)]':
+                'hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--shadow-color)]':
                   !isResendDisabled && !isResending,
               }"
               :disabled="isResendDisabled || isResending"

@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { definePageMeta, onMounted, ref, useTransactionsStore } from "#imports";
+import {
+  computed,
+  definePageMeta,
+  onMounted,
+  ref,
+  useTransactionsStore,
+} from "#imports";
 import type { Transaction } from "~/client";
 import Content from "~/components/Content.vue";
-import {
-  TransactionStatusEnum,
-  TransactionPaymentTypeEnum,
-} from "~/client/src/generated/models/Transaction";
 
 definePageMeta({
   layout: "account",
@@ -15,7 +17,7 @@ const txnStore = useTransactionsStore();
 const isReady = ref(false);
 
 // Dummy data
-const transactions = ref<Transaction[]>(txnStore.transactions);
+const transactions = computed(() => txnStore.transactions);
 
 const formatDate = (date: Date) => {
   return date.toLocaleDateString("en-US", {
@@ -32,7 +34,8 @@ const formatCurrency = (amount: number, currency: string | null) => {
   }).format(amount);
 };
 
-onMounted(() => {
+onMounted(async () => {
+  await txnStore.initializeTransactions();
   if (import.meta.client) {
     isReady.value = true;
   }
@@ -42,9 +45,7 @@ onMounted(() => {
 <template>
   <Content :is-ready="isReady">
     <div class="space-y-8">
-      <div
-        class="p-8 border border-[var(--text-color)] rounded-md text-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)]"
-      >
+      <div class="box-inner-card p-4 sm:p-8">
         <div class="mb-6">
           <h3 class="text-lg font-semibold leading-6">Transaction History</h3>
           <p class="mt-1.5 text-sm text-gray-500 dark:text-gray-400">
@@ -57,7 +58,10 @@ onMounted(() => {
             <div
               class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8"
             >
-              <table class="min-w-full divide-y divide-[var(--border-color)]">
+              <table
+                v-if="transactions.length > 0"
+                class="min-w-full divide-y divide-(--border-color)"
+              >
                 <thead>
                   <tr>
                     <th
@@ -89,7 +93,7 @@ onMounted(() => {
                     </th>
                   </tr>
                 </thead>
-                <tbody class="divide-y divide-[var(--border-color)]">
+                <tbody class="divide-y divide-(--border-color)">
                   <tr v-for="txn in transactions" :key="txn.id">
                     <td
                       class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium sm:pl-0"
@@ -128,6 +132,19 @@ onMounted(() => {
                   </tr>
                 </tbody>
               </table>
+              <div
+                v-else-if="isReady && !transactions.length"
+                class="py-12 text-center"
+              >
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  You don't have any transactions yet.
+                </p>
+              </div>
+              <div v-else class="py-12 text-center">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  Loading Transactions...
+                </p>
+              </div>
             </div>
           </div>
         </div>

@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { computed, definePageMeta, ref, useSubscriptionStore } from "#imports";
+import {
+  computed,
+  definePageMeta,
+  onMounted,
+  ref,
+  useSubscriptionStore,
+} from "#imports";
 import Content from "~/components/Content.vue";
 import { CheckCircle, XCircle } from "lucide-vue-next";
 import type { SubscriptionInfo } from "~/client";
@@ -10,8 +16,7 @@ definePageMeta({
 });
 
 const subscription = useSubscriptionStore();
-// const subscriptionApi = useSubscriptionApi();
-
+const isReady = ref(false);
 // Dummy data based on the API type
 const currentSubscription = computed(() => subscription.activeSubscription);
 
@@ -25,15 +30,19 @@ const formatDate = (date: string | Date) => {
     day: "numeric",
   });
 };
+
+onMounted(() => {
+  if (import.meta.client) {
+    isReady.value = true;
+  }
+});
 </script>
 
 <template>
-  <Content :is-ready="Boolean(currentSubscription)">
-    <div class="space-y-8 w-full">
+  <Content :is-ready="isReady && Boolean(currentSubscription)">
+    <div class="space-y-8 w-full h-full flex flex-col">
       <!-- Current Subscription -->
-      <div
-        class="rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
-      >
+      <div class="box-inner-card p-4 sm:p-8">
         <div class="flex justify-between items-start">
           <div>
             <h3 class="text-lg font-semibold leading-6">My Subscription</h3>
@@ -41,17 +50,28 @@ const formatDate = (date: string | Date) => {
               Manage your subscription plan and billing details.
             </p>
           </div>
-          <NuxtLink
-            to="/account/subscriptions/upgrade"
-            class="inline-flex items-center gap-2 rounded-lg border-l border-t border-white px-4 py-2 dark:bg-blue-700/80 text-white shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:shadow-[inset_-3px_-3px_0_var(--text-color),inset_3px_3px_0_#0b0d40] transition-all focus:outline-none hover:translate-x-[2px] hover:translate-y-[2px] whitespace-pre"
-          >
-            Upgrade Plan
-          </NuxtLink>
+          <div class="flex items-center gap-3">
+            <NuxtLink
+              v-if="
+                currentSubscription && currentSubscription.plan.name !== 'Free'
+              "
+              :to="`/account/subscriptions/manage?id=${currentSubscription.id}`"
+              class="button-box verbose hover:translate-x-0.5 hover:translate-y-0.5"
+            >
+              Manage
+            </NuxtLink>
+            <NuxtLink
+              to="/account/subscriptions/upgrade"
+              class="button-box hover:translate-x-0.5 hover:translate-y-0.5"
+            >
+              Upgrade Plan
+            </NuxtLink>
+          </div>
         </div>
 
         <div
           v-if="currentSubscription"
-          class="mt-6 border-t border-[var(--border-color)] pt-6"
+          class="mt-6 border-t border-(--border-color) pt-6"
         >
           <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
             <div class="sm:col-span-1">
@@ -101,19 +121,17 @@ const formatDate = (date: string | Date) => {
       </div>
 
       <!-- Past Subscriptions -->
-      <div
-        class="rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
-      >
+      <div class="box-inner-card p-4 sm:p-8">
         <h3 class="text-lg font-semibold leading-6">Subscription History</h3>
         <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Your previous subscription records.
         </p>
-        <div class="mt-6 flow-root">
+        <div v-if="pastSubscriptions.length > 0" class="mt-6 flow-root">
           <ul role="list" class="space-y-4">
             <li
               v-for="sub in pastSubscriptions"
               :key="sub.id"
-              class="relative flex items-center justify-between px-5 py-4 border border-[var(--text-color)] rounded-md bg-transparent text-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)]"
+              class="card-box p-4"
             >
               <div class="flex items-center flex-1 min-w-0">
                 <div class="mr-4">
@@ -123,7 +141,7 @@ const formatDate = (date: string | Date) => {
                   />
                   <XCircle v-else class="h-6 w-6 text-red-500" />
                 </div>
-                <div class="ml-4 flex-1 min-w-0">
+                <div class="ml-4 space-y-1 flex-1 min-w-0">
                   <p class="text-sm font-medium">{{ sub.plan.name }} Plan</p>
                   <p class="text-xs opacity-60 mt-0.5">
                     {{ formatDate(sub.startedAt) }} -
@@ -133,13 +151,30 @@ const formatDate = (date: string | Date) => {
               </div>
               <div class="flex items-center gap-3 ml-4">
                 <span
-                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-[var(--text-color)] capitalize"
+                  class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-(--text-color) capitalize"
+                  :class="{
+                    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-500 border border-yellow-200 dark:border-yellow-800':
+                      sub.status === 'PENDING',
+                    'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500 border border-green-200 dark:border-green-800':
+                      sub.status === 'ACTIVE',
+                    'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500 border border-red-200 dark:border-red-800':
+                      sub.status === 'INACTIVE' || sub.status === 'EXPIRED',
+                  }"
                 >
                   {{ sub.status.toLowerCase() }}
                 </span>
+                <NuxtLink
+                  :to="`/account/subscriptions/manage?id=${sub.id}`"
+                  class="button-box-small primary"
+                >
+                  Manage
+                </NuxtLink>
               </div>
             </li>
           </ul>
+        </div>
+        <div v-else class="text-sm opacity-70 text-center mt-8">
+          <p>You don't have any past subscriptions yet.</p>
         </div>
       </div>
     </div>

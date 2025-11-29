@@ -97,7 +97,7 @@ watch(
   (u) => {
     if (u) Object.assign(userForm, u);
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 const isFormChanged = computed(() => {
@@ -148,9 +148,7 @@ definePageMeta({ layout: "account" });
 
 <template>
   <Content :is-ready="isReady && Boolean(auth.user)">
-    <div
-      class="rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
-    >
+    <div class="box-inner-card p-4 sm:p-8">
       <!-- Avatar Section -->
       <div class="flex flex-col items-center">
         <h3 class="text-lg font-medium leading-6">Profile Picture</h3>
@@ -199,12 +197,12 @@ definePageMeta({ layout: "account" });
             </svg>
           </div>
           <button
-            class="absolute -bottom-2 -right-2 bg-white dark:bg-gray-800 rounded-full p-2 border-2 border-[var(--text-color)] shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            class="absolute -bottom-2 -right-2 bg-white dark:bg-gray-800 rounded-full p-2 border-2 border-[--text-color] shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             :disabled="loadingUploadAvatar"
             :class="{ 'cursor-not-allowed opacity-50': loadingUploadAvatar }"
             @click="triggerFileInput"
           >
-            <Camera class="w-5 h-5 text-[var(--text-color)]" />
+            <Camera class="w-5 h-5 text-[--text-color]" />
           </button>
         </div>
         <input
@@ -280,7 +278,7 @@ definePageMeta({ layout: "account" });
             <button
               type="submit"
               :disabled="isLoading || !isFormChanged"
-              class="inline-flex items-center gap-2 rounded-lg border-l border-t border-white px-4 py-2 dark:bg-blue-700/80 text-white shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:shadow-[inset_-3px_-3px_0_var(--text-color),inset_3px_3px_0_#0b0d40] transition-all focus:outline-none hover:translate-x-[2px] hover:translate-y-[2px]"
+              class="button-box"
               :class="{
                 'opacity-50 cursor-not-allowed': isLoading || !isFormChanged,
               }"

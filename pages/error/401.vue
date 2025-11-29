@@ -1,10 +1,6 @@
 <template>
-  <div
-    class="w-full flex items-center justify-center min-h-full bg-[var(--bg-color)] transition-colors duration-300"
-  >
-    <div v-if="!isClientReady && hasCookie"><Loading /></div>
-
-    <div v-else class="sm:mx-auto sm:w-full sm:max-w-md text-center">
+  <Content :is-ready="!isClientReady && hasCookie">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
       <div class="mt-6">
         <h2 class="text-3xl font-bold tracking-tight">Session Expired</h2>
         <p class="mt-2 text-sm opacity-80">
@@ -14,10 +10,10 @@
       </div>
 
       <div
-        class="mt-8 py-8 px-4 shadow-[4px_4px_0_var(--text-color)] sm:rounded-lg sm:px-10 border border-[var(--text-color)] bg-[var(--bg-color)] transition-colors"
+        class="mt-8 py-8 px-4 shadow-[4px_4px_0_var(--shadow-color)] sm:rounded-lg sm:px-10 border border-[--border-color] bg-[--bg-color] transition-colors"
       >
         <button
-          class="rounded-md border border-[var(--text-color)] px-4 py-2 font-medium shadow-[4px_4px_0_var(--text-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--text-color)] transition-all bg-transparent"
+          class="rounded-md border border-[--border-color] px-4 py-2 font-medium shadow-[4px_4px_0_var(--shadow-color)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0_var(--shadow-color)] transition-all bg-transparent text-[--text-color]"
           @click="redirectToLogin"
         >
           Back to Login
@@ -28,13 +24,15 @@
         </p>
       </div>
     </div>
-  </div>
+  </Content>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { navigateTo } from "#app";
 import { computed, definePageMeta, useAuthStore } from "#imports";
+
+import Content from "~/components/Content.vue";
 
 const auth = useAuthStore();
 const hasCookie = computed(() => auth.hasCookie() || false);

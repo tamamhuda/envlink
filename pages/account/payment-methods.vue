@@ -131,11 +131,9 @@ const handleUpdateSelectedAddress = (id: string) => {
 </script>
 
 <template>
-  <Content :is-ready="true">
+  <Content :is-ready="pmStore.initialized && billAddressStore.initialized">
     <div class="space-y-8">
-      <div
-        class="p-8 border border-[var(--text-color)] rounded-md text-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)]"
-      >
+      <div class="box-inner-card p-4 sm:p-8">
         <div class="flex justify-between items-start mb-6">
           <div>
             <h3 class="text-lg font-semibold leading-6">Payment Methods</h3>
@@ -145,7 +143,7 @@ const handleUpdateSelectedAddress = (id: string) => {
           </div>
 
           <button
-            class="inline-flex items-center gap-2 rounded-lg border border-[var(--text-color)] px-4 py-2 text-sm font-medium shadow-[2px_2px_0_var(--text-color)] hover:shadow-[2px_2px_0_#2563eb] transition-all"
+            class="button-box hover:translate-x-0.5 hover:translate-y-0.5"
             @click="openAddPaymentModal"
           >
             <Plus class="w-4 h-4" />

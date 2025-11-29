@@ -17,18 +17,18 @@ const subscription = useSubscriptionStore();
 const scheduleIntervals: ScheduleInterval[] = [
   {
     label: "Monthly",
-    value: { interval: "MONTH", interval_count: 1 },
+    value: { interval: "MONTH", intervalCount: 1 },
     priceMultiplier: 1,
   },
   {
     label: "Quarterly",
-    value: { interval: "MONTH", interval_count: 3 },
+    value: { interval: "MONTH", intervalCount: 3 },
     priceMultiplier: 3,
     discount: 0.1,
   },
   {
     label: "Yearly",
-    value: { interval: "YEAR", interval_count: 1 },
+    value: { interval: "YEAR", intervalCount: 1 },
     priceMultiplier: 12,
     discount: 0.2,
   },
@@ -88,8 +88,8 @@ watch(selectedInterval, (newInterval) => {
 
 const computedSchedule = computed(() => ({
   interval: selectedInterval.value.value.interval || "MONTH",
-  interval_count: selectedInterval.value.value.interval_count || 1,
-  total_recurrence:
+  intervalCount: selectedInterval.value.value.intervalCount || 1,
+  totalRecurrance:
     selectedRecurrence.value.value / selectedInterval.value.priceMultiplier ||
     12,
 }));
@@ -99,7 +99,7 @@ const promoDiscountAmount = computed(() => {
 
   const base =
     selectedPlan.value.price * selectedInterval!.value!.priceMultiplier!;
-  const intervalDiscount = selectedInterval?.value?.discount ?? 0;
+  const intervalDiscount = selectedInterval.value.discount ?? 0;
   const subtotal = base * (1 - intervalDiscount);
 
   return subtotal * appliedPromoCode.value.discount;
@@ -153,35 +153,54 @@ const upgradeDetails = computed<UpgradeDetails>(() => {
   const intervalDetails = scheduleIntervals.find(
     (i) =>
       i.value.interval === computedSchedule.value.interval &&
-      i.value.interval_count === computedSchedule.value.interval_count,
+      i.value.intervalCount === computedSchedule.value.intervalCount,
   );
   const recurrence = recurrenceOptions.find(
-    (r) => r.value === computedSchedule.value.total_recurrence,
+    (r) => r.value === computedSchedule.value.totalRecurrance,
   );
 
   const base = intervalDetails
     ? selectedPlan.value!.price * intervalDetails.priceMultiplier
     : 0;
-  const intervalDiscount = intervalDetails?.discount ?? 0;
-  const intervalDiscountAmt = base * intervalDiscount;
-  const subtotal = base - intervalDiscountAmt;
-  const promoDiscountAmt = appliedPromoCode.value?.code
-    ? subtotal * appliedPromoCode.value?.discount
-    : 0;
+
+  const intervalDiscount = intervalDetails?.discount
+    ? {
+        rate: intervalDetails.discount,
+        amount: base * intervalDetails.discount,
+      }
+    : null;
+
+  const subtotal = base - (intervalDiscount?.amount ?? 0);
+
+  const promoDiscount = appliedPromoCode.value
+    ? {
+        code: appliedPromoCode.value.code,
+        rate: appliedPromoCode.value.discount,
+        amount: subtotal * appliedPromoCode.value.discount,
+      }
+    : null;
+
+  const schedule = computedSchedule.value;
 
   return {
     planName: selectedPlan.value?.name || "Free",
     strategy: upgradeStrategy.value,
     intervalLabel: intervalDetails?.label || "Monthly",
     recurrenceLabel: recurrence?.label || "3 Month",
-    total: computedTotal.value,
-    discount: selectedInterval?.value?.discount ?? 0,
-    promoCode: appliedPromoCode.value,
-    proratedCredit: proratedCredit.value,
+    totalPrice: computedTotal.value,
     basePrice: base,
-    intervalDiscountAmount: intervalDiscountAmt,
-    promoDiscountAmount: promoDiscountAmt,
-    intervalDetails: intervalDetails,
+    discount: selectedInterval.value.discount ?? 0,
+    promoCode: appliedPromoCode.value,
+    intervalDiscount,
+    promoDiscount,
+    proratedCredit: {
+      amount: proratedCredit.value,
+      description: "Prorated credit for the current billing period",
+    },
+    selectedInterval: {
+      ...schedule,
+      priceMultiplier: selectedInterval.value.priceMultiplier,
+    },
     recurrenceDetails: recurrence,
   };
 });
@@ -189,20 +208,7 @@ const upgradeDetails = computed<UpgradeDetails>(() => {
 function continueToConfirmation() {
   if (!selectedPlan.value) return;
   const details = upgradeDetails.value;
-  const schedule = computedSchedule.value;
-
-  const upgradeSubscriptionPayload = {
-    plan: details.planName,
-    schedule,
-    description: `Upgrade to ${selectedPlan.value.name} plan (${details.intervalLabel}, ${details.recurrenceLabel})`,
-    amount: details.basePrice,
-    strategy: details.strategy,
-    discount: details.intervalDiscountAmount + details.promoDiscountAmount,
-    metadata: details,
-  };
-
-  subscription.setUpgradeMetadata(details);
-  subscription.setUpgradeRequest(upgradeSubscriptionPayload);
+  subscription.setUpgradeRequest(details);
   navigateTo("/account/subscriptions/upgrade/confirm");
 }
 </script>

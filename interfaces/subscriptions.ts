@@ -1,16 +1,16 @@
 import type { OptionsDataStrategyEnum } from "~/client";
 
-export type UpgradeStrategy =  OptionsDataStrategyEnum;
+export type UpgradeStrategy = OptionsDataStrategyEnum;
 
-export interface ScheduleInterval  {
+export interface ScheduleInterval {
   label: "Monthly" | "Quarterly" | "Yearly";
   value: {
     interval: "MONTH" | "YEAR";
-    interval_count: number;
+    intervalCount: number;
   };
   priceMultiplier: number;
   discount?: number;
-};
+}
 
 export interface RecurrenceOption {
   label: string;
@@ -19,45 +19,70 @@ export interface RecurrenceOption {
 
 export interface UpgradeDetails {
   planName: "Free" | "Starter" | "Pro" | "Enterprise";
-  strategy: "UPGRADE_IMMEDIATELY" | "FINISH_CURRENT_CYCLE";
+  strategy: OptionsDataStrategyEnum;
   intervalLabel: "Monthly" | "Quarterly" | "Yearly";
   recurrenceLabel: string;
-  total: number;
+  basePrice: number;
+  totalPrice: number;
   discount: number;
   promoCode: {
     code: string;
     discount: number;
   } | null;
-  proratedCredit: number;
-  basePrice: number;
-  intervalDiscountAmount: number;
-  promoDiscountAmount: number;
-  intervalDetails: ScheduleInterval | undefined;
-  recurrenceDetails: RecurrenceOption | undefined;
-};
-
-export interface UpgradeMetadata {
-  intervalLabel: "Monthly" | "Quarterly" | "Yearly";
-  recurrenceLabel: string;
-  strategy: OptionsDataStrategyEnum;
-  basePrice: number;
-  totalPrice: number;
-  intervalDiscount: {
-    rate?: number;
+  proratedCredit: {
     amount: number;
+    description: string;
   };
+  intervalDiscount: {
+    rate: number;
+    amount: number;
+  } | null;
   promoDiscount: {
     code: string;
     rate: number;
     amount: number;
   } | null;
+  selectedInterval: {
+    interval: "MONTH" | "YEAR";
+    intervalCount: number;
+    totalRecurrance: number;
+    priceMultiplier: number;
+  };
+  recurrenceDetails: RecurrenceOption | undefined;
+  [key: string]: unknown;
+}
+
+export interface UpgradeMetadata {
+  planName: "Free" | "Starter" | "Pro" | "Enterprise";
+  strategy: OptionsDataStrategyEnum;
+  intervalLabel: "Monthly" | "Quarterly" | "Yearly";
+  recurrenceLabel: string;
+  basePrice: number;
+  totalPrice: number;
+  discount: number;
+  promoCode: {
+    code: string;
+    discount: number;
+  } | null;
   proratedCredit: {
     amount: number;
     description: string;
   };
+  intervalDiscount: {
+    rate: number;
+    amount: number;
+  } | null;
+  promoDiscount: {
+    code: string;
+    rate: number;
+    amount: number;
+  } | null;
   selectedInterval: {
     interval: "MONTH" | "YEAR";
-    interval_count: number;
+    intervalCount: number;
+    totalRecurrance: number;
     priceMultiplier: number;
   };
+  recurrenceDetails?: RecurrenceOption;
+  [key: string]: unknown;
 }

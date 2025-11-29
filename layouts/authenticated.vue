@@ -8,8 +8,18 @@ import {
   useAccountApi,
   useAuthStore,
   useRoute,
+  useTheme,
 } from "#imports";
-import { Menu, User, Pencil, CreditCard, LogOut } from "lucide-vue-next";
+import {
+  Menu,
+  User,
+  Pencil,
+  CreditCard,
+  LogOut,
+  Settings,
+  Sun,
+  Moon,
+} from "lucide-vue-next";
 
 import { useSidebar } from "~/composables/useSidebar";
 
@@ -31,7 +41,7 @@ const isVerified = computed(() => user?.providers.isVerified || false);
 const isAuthenticated = computed(() => auth.isAuthenticated);
 
 const isUpgradePage = computed(() =>
-  route.path.includes("/account/subscriptions/upgrade"),
+  route.path.includes("/account/subscriptions/upgrade")
 );
 
 // Mock notifications
@@ -41,6 +51,9 @@ const notifications = ref([
   { title: "Subscription renewed successfully", time: "Yesterday" },
 ]);
 const unreadCount = computed(() => notifications.value.length);
+
+// Theme State
+const { isDarkMode, toggleTheme } = useTheme();
 
 // --- Logic ---
 const toggleDropdown = () => {
@@ -89,6 +102,7 @@ onMounted(() => {
     isClientOnly.value = true;
   }
 });
+
 onUnmounted(() => {
   document.removeEventListener("click", handleClickOutside);
 });
@@ -96,11 +110,11 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="flex flex-col relative min-h-screen bg-[var(--bg-color)] text-[var(--text-color)] transition-colors duration-300"
+    class="max-w-screen flex flex-1 flex-col overflow-x-hidden relative min-h-screen text-(--text-color) transition-colors"
   >
     <!-- Header -->
     <header
-      class="flex items-center sticky top-0 justify-between px-6 sm:px-8 py-4 border-b border-[var(--border-color)] max-w-full mx-auto w-full bg-[var(--bg-color)] z-[50]"
+      class="flex items-center sticky top-0 justify-between px-6 sm:px-8 py-4 border-b border-(--border-color) max-w-full mx-auto w-full bg-(--bg-color) z-50"
     >
       <button
         class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800/50"
@@ -111,10 +125,23 @@ onUnmounted(() => {
       </button>
       <!-- Brand -->
       <div class="flex-1 justify-start flex pl-2">
-        <NuxtLink to="/dashboard" class="rounded-md font-medium">
-          <h1
-            class="text-xl font-semibold tracking-tight text-[var(--text-color)]"
-          >
+        <NuxtLink
+          to="/dashboard"
+          class="rounded-md font-medium flex items-center gap-2"
+        >
+          <div>
+            <img
+              src="/icons/envlink-light.svg"
+              alt="Envlink Logo"
+              class="h-10 block dark:hidden"
+            />
+            <img
+              src="/icons/envlink-dark.svg"
+              alt="Envlink Logo"
+              class="h-10 hidden dark:block"
+            />
+          </div>
+          <h1 class="text-xl font-semibold tracking-tight text-(--text-color)">
             Envlink
           </h1>
         </NuxtLink>
@@ -127,24 +154,48 @@ onUnmounted(() => {
           <NuxtLink
             v-if="isClientOnly && isVerified && !isUpgradePage"
             to="/account/subscriptions/upgrade"
-            class="no-underline rounded-md border border-[var(--text-color)] px-4 py-2 text-sm font-medium shadow-[2px_2px_0_var(--text-color)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_var(--text-color)] transition-all"
+            class="button-box-small px-4 py-1.5 text-base font-medium"
           >
             Upgrade
           </NuxtLink>
           <NuxtLink
             v-if="isUpgradePage"
             to="/dashboard"
-            class="no-underline rounded-md border border-[var(--text-color)] px-4 py-2 text-sm font-medium shadow-[2px_2px_0_var(--text-color)] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_var(--text-color)] transition-all"
+            class="button-box-small px-4 py-1.5 text-base font-medium"
           >
             Dashboard
           </NuxtLink>
         </nav>
 
+        <!-- Theme Toggle -->
+        <button
+          class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+          aria-label="Toggle Theme"
+          @click="toggleTheme"
+        >
+          <div class="relative w-5 h-5">
+            <Transition
+              enter-active-class="transition duration-300 ease-out"
+              enter-from-class="transform rotate-90 opacity-0 scale-50"
+              enter-to-class="transform rotate-0 opacity-100 scale-100"
+              leave-active-class="transition duration-300 ease-in"
+              leave-from-class="transform rotate-0 opacity-100 scale-100"
+              leave-to-class="transform -rotate-90 opacity-0 scale-50"
+            >
+              <Sun
+                v-if="isDarkMode"
+                class="w-5 h-5 absolute inset-0 text-orange-500"
+              />
+              <Moon v-else class="w-5 h-5 absolute inset-0 text-blue-400" />
+            </Transition>
+          </div>
+        </button>
+
         <!-- Notifications -->
         <div ref="notifRef" class="relative">
           <button
             :disabled="isClientOnly && !isAuthenticated"
-            class="relative flex items-center justjustify-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            class="relative flex items-center justify-center p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             aria-label="Notifications"
             @click="toggleNotifications"
           >
@@ -178,10 +229,10 @@ onUnmounted(() => {
           >
             <div
               v-if="isNotifOpen"
-              class="absolute right-0 mt-2 w-72 bg-[var(--bg-color)] border border-[var(--text-color)] rounded-lg shadow-[4px_4px_0_var(--text-color)] z-50"
+              class="absolute right-0 mt-6 min-w-sm box-shadow-card"
             >
               <div
-                class="px-4 py-2 border-b border-[var(--border-color)] font-medium text-sm"
+                class="px-4 min-h-12 flex items-center border-b border-(--border-color) font-medium text-sm"
               >
                 Notifications
               </div>
@@ -192,7 +243,7 @@ onUnmounted(() => {
                 <div
                   v-for="(notif, index) in notifications"
                   :key="index"
-                  class="px-4 py-3 border-b border-[var(--border-color)] last:border-0 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                  class="px-4 py-3 flex flex-col items-start border-b border-(--border-color)/30 min-h-18 last:border-0 hover:bg-(--shadow-color)/20 dark:hover:bg-gray-800 transition-colors"
                 >
                   <p class="text-sm font-medium">{{ notif.title }}</p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -221,7 +272,7 @@ onUnmounted(() => {
               v-if="isClientOnly && user?.avatar"
               :src="user.avatar"
               :alt="user.fullName || user.username"
-              class="w-8 h-8 rounded-full object-cover border border-[var(--border-color)]"
+              class="w-8 h-8 rounded-full object-cover border border-(--border-color)"
             />
             <div
               v-else
@@ -244,11 +295,11 @@ onUnmounted(() => {
           >
             <div
               v-if="isDropdownOpen"
-              class="absolute right-0 mt-2 w-56 bg-[var(--bg-color)] border border-[var(--text-color)] rounded-lg shadow-[4px_4px_0_var(--text-color)] py-1 z-[99]"
+              class="absolute right-0 mt-6 w-56 box-shadow-card"
             >
               <div
                 v-if="isClientOnly && isAuthenticated"
-                class="px-4 py-3 border-b border-[var(--border-color)]"
+                class="px-4 py-3 border-b border-(--border-color)"
               >
                 <p class="text-sm font-medium">
                   {{ user?.fullName || user?.username }}
@@ -279,6 +330,16 @@ onUnmounted(() => {
               </NuxtLink>
 
               <NuxtLink
+                v-if="isClientOnly && isAuthenticated"
+                to="/account/settings"
+                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
+                @click="closeDropdown"
+              >
+                <Settings class="w-4 h-4" />
+                <span>Settings</span>
+              </NuxtLink>
+
+              <NuxtLink
                 v-if="isVerified"
                 to="/account/subscriptions"
                 class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
@@ -303,12 +364,14 @@ onUnmounted(() => {
       </div>
     </header>
 
-    <main class="max-w-screen-2xl mx-auto min-w-max w-full">
+    <main
+      class="mx-auto w-full 2xl:max-w-[95vw] overflow-hidden h-full flex-1 flex flex-col"
+    >
       <slot />
     </main>
     <!-- Footer -->
     <footer
-      class="border-t border-[var(--border-color)] text-center py-4 text-sm mt-auto max-w-[960px] mx-auto w-full text-gray-600 dark:text-gray-400"
+      class="border-t border-(--border-color) text-center py-4 text-sm mt-auto max-w-[960px] mx-auto w-full text-gray-600 dark:text-gray-400"
     >
       © <span>{{ year }}</span> Stativio. Conscious uptime detected.
     </footer>

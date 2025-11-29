@@ -1,7 +1,5 @@
 import { useAuthStore, useRouter } from "#imports";
-import { EnvlinkClient } from "~/client";
-
-import { Configuration } from "~/client/src/generated";
+import { Configuration, EnvlinkClient } from "~/client";
 
 import type { AuthConfig, EnvlinkErrorContext } from "~/client/src/wrap/types";
 

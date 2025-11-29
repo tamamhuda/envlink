@@ -22,6 +22,7 @@ import {
 } from "lucide-vue-next";
 
 import { useSidebar } from "~/composables/useSidebar";
+import ActionDropdown from "~/components/common/ActionDropdown.vue";
 
 const { toggle: toggleSidebar } = useSidebar();
 const isClientOnly = ref(false);
@@ -29,7 +30,6 @@ const auth = useAuthStore();
 const accountApi = useAccountApi();
 const { logout } = await accountApi.logout();
 const { user } = auth;
-const year = new Date().getFullYear();
 const route = useRoute();
 
 // Dropdowns
@@ -110,11 +110,11 @@ onUnmounted(() => {
 
 <template>
   <div
-    class="max-w-screen flex flex-1 flex-col overflow-x-hidden relative min-h-screen text-(--text-color) transition-colors"
+    class="flex flex-col h-screen overflow-hidden text-(--text-color) transition-colors"
   >
     <!-- Header -->
     <header
-      class="flex items-center sticky top-0 justify-between px-6 sm:px-8 py-4 border-b border-(--border-color) max-w-full mx-auto w-full bg-(--bg-color) z-50"
+      class="flex items-center justify-between px-6 sm:px-8 py-4 border-b border-(--border-color) w-full bg-(--bg-color) z-50 shrink-0"
     >
       <button
         class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-800/50"
@@ -262,118 +262,104 @@ onUnmounted(() => {
         </div>
 
         <!-- User Dropdown -->
-        <div ref="dropdownRef" class="relative">
-          <button
-            class="flex items-center rounded-md py-0.5 gap-2 hover:opacity-90 transition-opacity"
-            aria-label="User menu"
-            @click="toggleDropdown"
+        <div ref="dropdownRef">
+          <ActionDropdown
+            :is-open="isDropdownOpen"
+            dropdown-class="w-56"
+            @toggle="toggleDropdown"
+            @close="closeDropdown"
           >
-            <img
-              v-if="isClientOnly && user?.avatar"
-              :src="user.avatar"
-              :alt="user.fullName || user.username"
-              class="w-8 h-8 rounded-full object-cover border border-(--border-color)"
-            />
-            <div
-              v-else
-              class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium"
-            >
-              <div v-if="user && isClientOnly">
-                {{ getInitials(user.fullName || user.username) }}
-              </div>
-              <div v-else>U</div>
-            </div>
-          </button>
-
-          <Transition
-            enter-active-class="transition ease-out duration-100"
-            enter-from-class="transform opacity-0 scale-95"
-            enter-to-class="transform opacity-100 scale-100"
-            leave-active-class="transition ease-in duration-75"
-            leave-from-class="transform opacity-100 scale-100"
-            leave-to-class="transform opacity-0 scale-95"
-          >
-            <div
-              v-if="isDropdownOpen"
-              class="absolute right-0 mt-6 w-56 box-shadow-card"
-            >
-              <div
-                v-if="isClientOnly && isAuthenticated"
-                class="px-4 py-3 border-b border-(--border-color)"
-              >
-                <p class="text-sm font-medium">
-                  {{ user?.fullName || user?.username }}
-                </p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                  {{ user?.email }}
-                </p>
-              </div>
-
-              <NuxtLink
-                v-if="isClientOnly && isAuthenticated"
-                to="/account"
-                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
-                @click="closeDropdown"
-              >
-                <User class="w-4 h-4" />
-                <span>Account</span>
-              </NuxtLink>
-
-              <NuxtLink
-                v-if="isClientOnly && isAuthenticated"
-                to="/account/profile"
-                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
-                @click="closeDropdown"
-              >
-                <Pencil class="w-4 h-4" />
-                <span>Profile</span>
-              </NuxtLink>
-
-              <NuxtLink
-                v-if="isClientOnly && isAuthenticated"
-                to="/account/settings"
-                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
-                @click="closeDropdown"
-              >
-                <Settings class="w-4 h-4" />
-                <span>Settings</span>
-              </NuxtLink>
-
-              <NuxtLink
-                v-if="isVerified"
-                to="/account/subscriptions"
-                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
-                @click="closeDropdown"
-              >
-                <CreditCard class="w-4 h-4" />
-                <span> Subscriptions</span>
-              </NuxtLink>
-
-              <!-- <div class="border-t border-[var(--border-color)] mt-1"></div> -->
-
+            <template #trigger>
               <button
-                class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-red-600 dark:text-red-400"
-                @click="handleLogout"
+                class="flex items-center rounded-md py-0.5 gap-2 hover:opacity-90 transition-opacity"
+                aria-label="User menu"
               >
-                <LogOut class="w-4 h-4" />
-                <span>Logout</span>
+                <img
+                  v-if="isClientOnly && user?.avatar"
+                  :src="user.avatar"
+                  :alt="user.fullName || user.username"
+                  class="w-8 h-8 rounded-full object-cover border border-(--border-color)"
+                />
+                <div
+                  v-else
+                  class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-medium"
+                >
+                  <div v-if="user && isClientOnly">
+                    {{ getInitials(user.fullName || user.username) }}
+                  </div>
+                  <div v-else>U</div>
+                </div>
               </button>
+            </template>
+
+            <div
+              v-if="isClientOnly && isAuthenticated"
+              class="px-4 py-3 border-b border-(--border-color)"
+            >
+              <p class="text-sm font-medium">
+                {{ user?.fullName || user?.username }}
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                {{ user?.email }}
+              </p>
             </div>
-          </Transition>
+
+            <NuxtLink
+              v-if="isClientOnly && isAuthenticated"
+              to="/account"
+              class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
+              @click="closeDropdown"
+            >
+              <User class="w-4 h-4" />
+              <span>Account</span>
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isClientOnly && isAuthenticated"
+              to="/account/profile"
+              class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
+              @click="closeDropdown"
+            >
+              <Pencil class="w-4 h-4" />
+              <span>Profile</span>
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isClientOnly && isAuthenticated"
+              to="/account/settings"
+              class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
+              @click="closeDropdown"
+            >
+              <Settings class="w-4 h-4" />
+              <span>Settings</span>
+            </NuxtLink>
+
+            <NuxtLink
+              v-if="isVerified"
+              to="/account/subscriptions"
+              class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors no-underline"
+              @click="closeDropdown"
+            >
+              <CreditCard class="w-4 h-4" />
+              <span> Subscriptions</span>
+            </NuxtLink>
+
+            <button
+              class="flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full text-left text-red-600 dark:text-red-400"
+              @click="handleLogout"
+            >
+              <LogOut class="w-4 h-4" />
+              <span>Logout</span>
+            </button>
+          </ActionDropdown>
         </div>
       </div>
     </header>
 
     <main
-      class="mx-auto w-full 2xl:max-w-[95vw] overflow-hidden h-full flex-1 flex flex-col"
+      class="mx-auto w-full 2xl:max-w-[95vw] overflow-y-auto flex-1 flex flex-col"
     >
       <slot />
     </main>
-    <!-- Footer -->
-    <footer
-      class="border-t border-(--border-color) text-center py-4 text-sm mt-auto max-w-[960px] mx-auto w-full text-gray-600 dark:text-gray-400"
-    >
-      © <span>{{ year }}</span> Stativio. Conscious uptime detected.
-    </footer>
   </div>
 </template>

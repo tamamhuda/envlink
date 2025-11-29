@@ -14,21 +14,21 @@ const isUpgradePage = computed(() =>
 
 <template>
   <NuxtLayout name="authenticated">
-    <div class="flex flex-1 h-full text-(--text-color)">
+    <div class="flex flex-1 overflow-hidden text-(--text-color)">
       <!-- Sidebar -->
       <aside
         :class="[
-          'fixed left-0 z-40 p-4 w-72 -translate-x-full',
-          'shrink-0 overflow-y-auto  transition-transform duration-300 ease-in-out',
+          'fixed inset-y-0 top-[73px] left-0 z-40 w-72 bg-(--bg-color)',
+          'shrink-0 overflow-y-auto transition-transform duration-300 ease-in-out',
           !isUpgradePage &&
-            'lg:relative lg:z-auto lg:translate-x-0 inset-y-20 lg:inset-10',
+            'lg:sticky lg:top-0 lg:self-start lg:h-[calc(100vh-73px)] lg:z-auto lg:translate-x-10 lg:translate-y-10',
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full',
         ]"
         role="navigation"
         aria-label="Sidebar"
       >
         <div class="flex flex-col">
-          <div class="flex-1 py-6 px-5 space-y-2 box-shadow-card">
+          <div class="flex-1 py-6 px-5 space-y-2 box-shadow-card m-4">
             <NuxtLink
               v-for="item in accountMenu.filter((i) => !i.hide)"
               :key="item.name"
@@ -54,7 +54,7 @@ const isUpgradePage = computed(() =>
       </aside>
 
       <!-- Main content -->
-      <main class="flex-1 flex w-full min-h-full p-6 sm:p-8">
+      <main class="flex-1 flex w-full min-h-0 p-6 sm:p-8 overflow-y-auto">
         <slot />
       </main>
 

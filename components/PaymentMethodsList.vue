@@ -92,7 +92,7 @@ const localMethods = computed({
         >
           <div v-for="(pm, index) in localMethods" :key="pm.id" role="listitem">
             <div
-              class="payment-method-card relative flex items-center justify-between px-5 py-4 border border-[var(--text-color)] rounded-md bg-transparent text-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)] transition-all hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[2px_2px_0_var(--text-color)]"
+              class="payment-method-card box-shadow-card relative flex p-4 transition-all hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0_var(--shadow-color-hover)]"
               :class="{ 'dropdown-open': openDropdownId === pm.id }"
             >
               <div class="flex items-center flex-1 min-w-0">
@@ -119,7 +119,7 @@ const localMethods = computed({
               <div class="flex items-center gap-3 ml-4">
                 <span
                   v-if="index === 0 && !drag"
-                  class="default inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-[var(--text-color)]"
+                  class="default inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border border-(--text-color)"
                 >
                   Default
                 </span>
@@ -132,7 +132,7 @@ const localMethods = computed({
                   </button>
                   <div
                     v-if="openDropdownId === pm.id"
-                    class="absolute right-0 mt-2 w-48 bg-[var(--bg-color)] border border-[var(--text-color)] rounded-lg shadow-[2px_2px_0_var(--text-color)] z-50"
+                    class="absolute right-0 mt-2 w-48 bg-(--bg-color) border border-(--text-color) rounded-lg shadow-[2px_2px_0_var(--text-color)] z-50"
                     @click.stop
                   >
                     <ul>
@@ -221,7 +221,7 @@ const localMethods = computed({
               </div>
               <div class="relative flex justify-center">
                 <span
-                  class="bg-[var(--bg-color)] px-3 text-xs text-gray-500 dark:text-gray-400"
+                  class="bg-(--bg-color) px-3 text-xs text-gray-500 dark:text-gray-400"
                 >
                   For renewals, we'll charge the next in line if the default
                   fails

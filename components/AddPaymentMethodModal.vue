@@ -214,7 +214,10 @@ const createPaymentMethod = async () => {
     }
 
     if (paymentMethodsError.value || !response.value) {
-      throw "An error occurred";
+      isLoading.value = false;
+      errorMessage.value =
+        "The payment method may have been added successfully. Try refreshing and checking your payment method.";
+      return;
     }
 
     const paymentMethod = response.value.data;
@@ -229,10 +232,7 @@ const createPaymentMethod = async () => {
     isLoading.value = false;
   } catch (error: any) {
     errorMessage.value =
-      error.value.data.message ||
-      error.message ||
-      "An unexpected error occurred.";
-    console.error("Payment Method Error:", error.value.data);
+      error.value.message || error.message || "An unexpected error occurred.";
     isLoading.value = false;
   }
 };
@@ -265,14 +265,12 @@ const goToAddAddress = () => {
 <template>
   <div
     v-if="isOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
     @click.self="closeModal"
   >
-    <div
-      class="relative w-full max-w-lg rounded-xl rounded-tr-2xl border-l border-t border-white p-7 bg-[var(--bg-color)] shadow-[inset_-3px_-3px_0px_var(--text-color),inset_3px_3px_0px_grey,inset_-3px_-3px_0px_white] transition-all"
-    >
+    <div class="box-inner-card max-w-lg p-8">
       <button
-        class="absolute top-4 right-4 text-[var(--text-color)] opacity-70 hover:opacity-100"
+        class="absolute top-4 right-4 text-(--text-color) opacity-70 hover:opacity-100"
         @click="closeModal"
       >
         <X class="w-6 h-6" />
@@ -289,11 +287,11 @@ const goToAddAddress = () => {
         <h3 class="text-lg font-semibold leading-6 mb-2">
           Payment Method Added
         </h3>
-        <p class="text-sm text-[var(--text-color)]/80 mb-6">
+        <p class="text-sm text-(--text-color)/80 mb-6">
           Your new payment method has been added successfully.
         </p>
         <div
-          class="text-left p-5 border border-[var(--text-color)] rounded-lg shadow-[2px_2px_0_var(--text-color)] mb-8 bg-gray-100 dark:bg-gray-800/30"
+          class="text-left p-5 border border-(--text-color) rounded-lg shadow-[2px_2px_0_var(--text-color)] mb-8 bg-gray-100 dark:bg-gray-800/30"
         >
           <div class="font-semibold text-base border-b pb-3">Card Details</div>
           <div class="text-sm space-y-4 mt-4">
@@ -320,7 +318,7 @@ const goToAddAddress = () => {
       </div>
 
       <!-- Payment Method Form -->
-      <div v-else class="max-h-[80vh] overflow-auto">
+      <div v-else class="max-h-[80vh] px-2 overflow-auto">
         <h3 class="text-lg font-semibold leading-6 mb-6">
           {{ isEditMode ? "Edit" : "Add New" }} Payment Method
         </h3>
@@ -494,11 +492,11 @@ const goToAddAddress = () => {
               id="default-checkbox"
               v-model="isDefault"
               type="checkbox"
-              class="w-4 h-4 rounded bg-transparent border-[var(--text-color)] text-blue-600 focus:ring-blue-500"
+              class="w-4 h-4 rounded bg-transparent border-(--text-color) text-blue-600 focus:ring-blue-500"
             />
             <label
               for="default-checkbox"
-              class="ml-3 text-sm font-medium text-[var(--text-color)]"
+              class="ml-3 text-sm font-medium text-(--text-color)"
               >Set as default payment method</label
             >
           </div>
@@ -512,9 +510,9 @@ const goToAddAddress = () => {
             </div>
           </div>
 
-          <div class="flex justify-end gap-4 pt-6">
+          <div class="flex justify-end gap-4 pb-2 pr-2">
             <button
-              class="inline-flex items-center gap-2 rounded-lg border-l border-t border-white px-4 py-2 shadow-[inset_-2px_-2px_0_var(--text-color)] hover:shadow-[inset_-3px_-3px_0_var(--text-color)] transition-all focus:outline-none"
+              class="button-box-verbose py-3 hover:translate-x-0.5 hover:translate-y-0.5"
               type="button"
               @click="closeModal"
             >
@@ -523,7 +521,7 @@ const goToAddAddress = () => {
             <button
               type="submit"
               :disabled="isLoading"
-              class="inline-flex items-center justify-center gap-2 rounded-lg border-l border-t border-white px-4 py-3 bg-blue-700/80 text-white text-base font-semibold shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:translate-x-[2px] hover:translate-y-[2px] active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              class="button-box py-3 hover:translate-x-0.5 hover:translate-y-0.5"
             >
               <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
               <span>{{

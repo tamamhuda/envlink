@@ -3,7 +3,7 @@
     <label
       v-if="label"
       :for="id"
-      class="block text-sm font-medium text-[var(--text-color)] opacity-90 mb-1.5"
+      class="block text-sm font-medium text-(--text-color) opacity-90 mb-1.5"
     >
       {{ label }}
     </label>
@@ -27,7 +27,8 @@
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
-        class="w-full bg-transparent border border-[var(--text-color)] rounded-lg py-3 focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb] disabled:opacity-50 disabled:cursor-not-allowed text-[var(--text-color)] placeholder-gray-400 sm:text-sm transition-all"
+       
+        class="text-input disabled:cursor-not-allowed"
         :class="[icon ? 'pl-10' : 'pl-4', isPassword ? 'pr-10' : 'pr-4']"
         @input="
           $emit('update:modelValue', ($event.target as HTMLInputElement).value)

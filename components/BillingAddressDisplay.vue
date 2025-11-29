@@ -6,16 +6,13 @@ defineProps<{
   loading: boolean;
 }>();
 
-// const emit = defineEmits<{
-//   (e: "change"): void;
-// }>();
-
+const emit = defineEmits<{
+  (e: "change"): void;
+}>();
 </script>
 
 <template>
-  <div
-    class="p-8 border border-[var(--text-color)] rounded-md text-[var(--text-color)] shadow-[4px_4px_0_var(--text-color)]"
-  >
+  <div class="box-inner-card p-4 sm:p-8">
     <div class="flex justify-between items-start">
       <div>
         <h3 class="text-lg font-semibold leading-6">Billing Address</h3>
@@ -23,17 +20,14 @@ defineProps<{
           Your default address for all invoices.
         </p>
       </div>
-      <button
-        class="inline-flex items-center gap-2 rounded-lg border border-[var(--text-color)] px-4 py-2 text-sm font-medium shadow-[2px_2px_0_var(--text-color)] hover:shadow-[2px_2px_0_#2563eb] transition-all"
-        @click="$emit('change')"
-      >
+      <button class="button-box hover:translate-0.5" @click="emit('change')">
         Change
       </button>
     </div>
 
     <div
       v-if="loading"
-      class="mt-6 border-t border-[var(--text-color)] pt-6 text-center"
+      class="mt-6 border-t border-(--text-color) pt-6 text-center"
     >
       <p class="text-sm text-gray-500 dark:text-gray-400">
         Loading billing address...
@@ -41,7 +35,7 @@ defineProps<{
     </div>
     <div
       v-else-if="address"
-      class="mt-6 border-t border-[var(--text-color)] pt-6 text-sm space-y-1"
+      class="mt-6 border-t border-(--text-color) pt-6 text-sm space-y-1"
     >
       <p class="font-medium">
         {{ address.customName }}
@@ -62,10 +56,7 @@ defineProps<{
       </p>
       <p>{{ address.country }}</p>
     </div>
-    <div
-      v-else
-      class="mt-6 border-t border-[var(--text-color)] pt-6 text-center"
-    >
+    <div v-else class="mt-6 border-t border-(--text-color) pt-6 text-center">
       <p class="text-sm text-gray-500 dark:text-gray-400">
         No default billing address selected.
       </p>

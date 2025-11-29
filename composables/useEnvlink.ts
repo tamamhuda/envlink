@@ -27,11 +27,17 @@ export function useEnvlink() {
   const router = useRouter();
 
   const onError = async (error: EnvlinkErrorContext) => {
-    if (error.type === "REFRESH_FAILED" || error.type === "NETWORK_ERROR") {
+    if (error.type === "REFRESH_FAILED") {
       router.push("/error/401");
+    } else if (
+      error.type === "NETWORK_ERROR" ||
+      (error.status && error.status >= 500)
+    ) {
+      router.push("/error/500");
     } else {
       console.log(error);
     }
+    console.log(error);
   };
 
   return new EnvlinkClient({ config, auth, onError });

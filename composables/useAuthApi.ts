@@ -1,16 +1,17 @@
 import { navigateTo, useAuthStore, useEnvlink } from "#imports";
-import type { LoginRequest, RegisterRequest, UserInfo } from "~/client";
+import type { LoginRequest, RegisterRequest, Tokens, UserInfo } from "~/client";
 
 export const useAuthApi = () => {
   const envlink = useEnvlink();
   const authStore = useAuthStore();
+  const { setUser, setTokens } = authStore;
 
-  const setUser = (user: UserInfo) => {
-    authStore.setUser(user);
-  };
-
-  const setInitialized = (initialized: boolean) => {
-    authStore.initialized = initialized;
+  const Initialized = (user: UserInfo, tokens?: Tokens) => {
+    authStore.initialized = true;
+    setUser(user);
+    if (tokens) {
+      setTokens(tokens);
+    }
   };
 
   const login = () => {
@@ -22,9 +23,8 @@ export const useAuthApi = () => {
       });
       if (response.value) {
         const { user } = response.value.data;
-        setUser(user);
-        authStore.initialized = true;
-        await navigateTo("/dashboard");
+
+        Initialized(user);
       }
     };
 
@@ -37,12 +37,17 @@ export const useAuthApi = () => {
     const register = async (body: RegisterRequest) => {
       await execute({
         registerRequest: body,
+        xClientUrl: "http://localhost:3000",
       });
       if (response.value) {
-        const { user } = response.value.data;
-        setUser(user);
-        setInitialized(true);
-        await navigateTo("/dashboard");
+        const { user, tokens } = response.value.data;
+        Initialized(user, tokens);
+        await navigateTo({
+          path: "/auth/verify",
+          query: {
+            from: "register",
+          },
+        });
       }
     };
 

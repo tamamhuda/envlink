@@ -15,6 +15,7 @@ export const useBillingAddressStore = defineStore("billing-address", {
     setBillingAddress(billingAddress: BillingAddress[]) {
       this.billingAddresses = billingAddress;
     },
+
     addBillingAddress(billingAddress: BillingAddress) {
       if (billingAddress.isDefault) {
         // Clear all defaults on add, because new record does not exist yet

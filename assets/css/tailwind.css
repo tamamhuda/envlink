@@ -21,6 +21,10 @@
     --overlay-color: #acacbc;
     --inner-shadow-verbose: hwb(200 82% 16% / 0.559);
     --bg-modal: #fafaff;
+
+    --date-range-color: #e1e9f4;
+    --date-text-range-color: #27294c;
+    --date-button-color: #596ff8;
   }
 
   .dark {
@@ -35,6 +39,10 @@
     --inner-shadow-verbose: hwb(200 29% 67%);
     --bg-modal: #1a1b27;
     --primary-color: #5630fc;
+
+    --date-range-color: rgb(192, 202, 240);
+    --date-text-range-color: #000000;
+    --date-button-color: #596ff8;
   }
 
   /* Base */
@@ -235,7 +243,7 @@
   }
 
   .box-modal {
-    @apply w-full sm:w-auto sm:rounded-xl sm:rounded-tr-2xl sm:border-l sm:border-t sm:border-(--border-color) bg-(--bg-modal) sm:shadow-[inset_-3px_-3px_0px_var(--shadow-color),inset_3px_3px_0px_var(--inner-shadow-color),inset_-3px_-3px_0px_var(--inner-shadow-color),inset_-3px_-3px_0px_var(--shadow-color)] overflow-y-scroll max-h-screen p-6;
+    @apply w-full sm:w-auto sm:rounded-xl sm:rounded-tr-2xl sm:border-l sm:border-t sm:border-(--border-color) bg-(--bg-modal) sm:shadow-[inset_-3px_-3px_0px_var(--shadow-color),inset_3px_3px_0px_var(--inner-shadow-color),inset_-3px_-3px_0px_var(--inner-shadow-color),inset_-3px_-3px_0px_var(--shadow-color)]  max-h-screen p-6;
   }
 
   .sidebar-item {
@@ -263,7 +271,7 @@
   }
 
   .box-shadow-card {
-    @apply shadow-[4px_4px_0_var(--shadow-color)] rounded-lg border border-(--border-color) bg-(--bg-color) transition-colors;
+    @apply shadow-[4px_4px_0_var(--shadow-color)] rounded-lg border border-(--border-color) bg-(--bg-color);
   }
 
   .card-box {

@@ -3,6 +3,9 @@ import { computed, useSubscriptionStore } from "#imports";
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const subscription = useSubscriptionStore();
+  const isBasePage = to.path === "/account/subscriptions";
+
+  if (isBasePage) return;
 
   // Wait until subscription store is initialized
   if (import.meta.client) {
@@ -10,9 +13,15 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   const activeSub = subscription.activeSubscription;
-  const accessableSuccess = computed(() => Boolean(subscription.pendingSubscription && subscription.isUpgradeRequested))
-  const isUpgradeRequestSuccessRoute = to.path.includes("/upgrade/success"); 
-  const isRequireUpgrabaleRoute = ["/upgrade/confirm", "/upgrade/preview"].some((p) => to.path.includes(p))
+  const accessableSuccess = computed(() =>
+    Boolean(
+      subscription.pendingSubscription && subscription.isUpgradeRequested,
+    ),
+  );
+  const isUpgradeRequestSuccessRoute = to.path.includes("/upgrade/success");
+  const isRequireUpgrabaleRoute = ["/upgrade/confirm", "/upgrade/preview"].some(
+    (p) => to.path.includes(p),
+  );
 
   if (isUpgradeRequestSuccessRoute && !accessableSuccess.value) {
     return navigateTo("/account/subscriptions");
@@ -29,12 +38,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   }
 
   // Prevent access to confirm/preview if no selected plan or option
-  if (
-    isRequireUpgrabaleRoute &&
-    !subscription.selectedPlan
-  ) {
+  if (isRequireUpgrabaleRoute && !subscription.selectedPlan) {
     return navigateTo("/account/subscriptions/upgrade");
   }
+
+  return;
 
   // Allow navigation
 });

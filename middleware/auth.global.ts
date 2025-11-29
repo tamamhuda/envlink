@@ -1,14 +1,10 @@
-import {
-  useAuthStore,
-  useSubscriptionStore,
-  useTransactionsStore,
-} from "#imports";
+import { useAuthStore, useSubscriptionStore } from "#imports";
 import { defineNuxtRouteMiddleware, navigateTo } from "nuxt/app";
 
 export default defineNuxtRouteMiddleware(async (to) => {
   const auth = useAuthStore();
 
-  const privateRoutes = ["/dashboard", "/account", "/settings"];
+  const privateRoutes = ["/dashboard", "/account", "/settings", "/error/401"];
 
   const isPrivate = privateRoutes.some((r) => to.path.startsWith(r));
 
@@ -17,6 +13,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // If no cookie and private → login
   if (!hasCookie && isPrivate) {
     return navigateTo("/login");
+  }
+
+  // initialize subscription for guest
+  if (import.meta.client) {
+    await useSubscriptionStore().initializePublicPlans();
   }
 
   // If user has cookie → load auth state
@@ -28,17 +29,23 @@ export default defineNuxtRouteMiddleware(async (to) => {
   const isVerified = auth.user?.providers.isVerified === true;
 
   // If authenticated but not verified
-  if (isAuth && !isVerified) {
-    const redirectBlocked = ["/login", "/register", "/dashboard"];
+  if (isAuth && auth.initialized && !isVerified) {
+    const redirectBlocked = ["/login", "/register", "/oauth", "/dashboard"];
     if (redirectBlocked.some((r) => to.path.startsWith(r))) {
       return navigateTo("/auth/verify");
+    }
+  }
+
+  if (hasCookie) {
+    const redirectBlocked = ["/login", "/register", "/oauth", "/error/401"];
+    if (redirectBlocked.some((r) => to.path.startsWith(r))) {
+      return navigateTo("/dashboard");
     }
   }
 
   // initialized subscriptions
   if (isAuth && auth.initialized && import.meta.client) {
     await useSubscriptionStore().initializeSubscription();
-    await useTransactionsStore().initializeTransactions();
   }
 
   // Allow authenticated private access
@@ -48,7 +55,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   // // If cookie exists but auth failed after initialization → 401
   if (hasCookie && auth.initialized && !isAuth && isPrivate) {
-    console.log(auth.initialized);
     return navigateTo("/error/401");
   }
 

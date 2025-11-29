@@ -1,23 +1,273 @@
-@reference "tailwindcss";
+@import "tailwindcss";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@import "tailwindcss/preflight.css" layer(custom-base);
+/* @import "tailwindcss/preflight.css" layer(base); */
 
 /* Custom theme variables */
-@layer custom-base {
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
   :root {
     --bg-color: #ffffff;
-    --text-color: #111111;
+    --text-color: #2b2e56;
+    --border-color: #b5b5f0;
+    --inner-shadow-color: #e1e9f4;
+    --shadow-color: #b6c5e5;
+    --shadow-color-hover: #b0b9ce;
+    --primary-color: #596ff8;
+    --primary-shadow-color: hsl(231, 100%, 92%);
+    --button-shadow-color: hsl(230, 16%, 71%);
+    --button-shadow-inner-color: hsl(229, 73%, 42%);
+    --overlay-color: #acacbc;
+    --inner-shadow-verbose: hwb(200 82% 16% / 0.559);
+    --bg-modal: #fafaff;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg-color: #111111;
-      --text-color: #ffffff;
-    }
+  .dark {
+    --bg-color: #1a1b2c;
+    --text-color: #f0f3fe;
+    --border-color: #d4d4eb;
+    --inner-shadow-color: #a8a8cf;
+    --shadow-color: #e0e0ff;
+    --shadow-color-hover: #c0c0f9;
+    --primary-shadow-color: #cdd9f2;
+    --overlay-color: #000000;
+    --inner-shadow-verbose: hwb(200 29% 67%);
+    --bg-modal: #1a1b27;
+    --primary-color: #5630fc;
+  }
+
+  /* Base */
+  .button-box {
+    --btn-color: #dae5fd;
+    --btn-text: var(--text-color);
+    --btn-border-color: var(--primary-color);
+    --btn-shadow-color: var(--primary-color);
+
+    @apply inline-flex items-center gap-2 rounded-lg px-4 py-2 font-semibold transition-all
+         focus:outline-none text-(--btn-text)
+         not-disabled:hover:translate-x-0.5 not-disabled:hover:translate-y-0.5
+         disabled:opacity-70;
+
+    border-left: 1px solid var(--btn-border-color);
+    border-top: 1px solid var(--btn-border-color);
+
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset -1px -1px 0 #0b0d40;
+
+    background: var(--btn-color);
+  }
+
+  /* Base Hover */
+  .button-box:not(:disabled):hover {
+    --btn-shadow-inner-color: #8face9;
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset 2px 3px 0 var(--btn-shadow-inner-color);
+  }
+
+  /* Dark mode */
+  .dark .button-box {
+    --btn-color: var(--primary-color);
+    --btn-border-color: #dae5fd;
+    --btn-shadow-color: #dae5fd;
+  }
+
+  .dark .button-box:not(:disabled):hover {
+    --btn-shadow-inner-color: #7e9cdb;
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset 2px 3px 0 var(--btn-shadow-inner-color);
+  }
+
+  /* Danger */
+  .button-box.danger {
+    --btn-color: #fee2e2;
+    --btn-text: #b91c1c;
+    --btn-border-color: #ef4444;
+    --btn-shadow-color: #dc2626;
+  }
+
+  .button-box.danger:not(:disabled):hover {
+    --btn-shadow-inner-color: #fabfbf;
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset 2px 3px 0 var(--btn-shadow-inner-color);
+  }
+
+  .dark .button-box.danger {
+    --btn-color: #e22222;
+    --btn-text: #fff;
+    --btn-border-color: #f5dede;
+    --btn-shadow-color: #f9dddd;
+  }
+
+  .dark .button-box.danger:not(:disabled):hover {
+    --btn-shadow-inner-color: #e98f8f;
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset 2px 3px 0 var(--btn-shadow-inner-color);
+  }
+
+  /* Success */
+  .button-box.success {
+    --btn-color: #d6f2e0;
+    --btn-text: #166534;
+    --btn-border-color: #22c55e;
+    --btn-shadow-color: #16a34a;
+  }
+
+  .button-box.success:not(:disabled):hover {
+    --btn-shadow-inner-color: #95caa8;
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset 2px 3px 0 var(--btn-shadow-inner-color);
+  }
+
+  .dark .button-box.success {
+    --btn-color: #34b867;
+    --btn-text: #fff;
+    --btn-border-color: #bbf7d0;
+    --btn-shadow-color: #bbf7d0;
+  }
+
+  .dark .button-box.success:not(:disabled):hover {
+    --btn-shadow-inner-color: #6ed393;
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset 2px 3px 0 var(--btn-shadow-inner-color);
+  }
+
+  /* Verbose */
+  .button-box.verbose {
+    --btn-border-color: var(--border-color);
+    --btn-color: var(--bg-color);
+    --btn-text: var(--text-color);
+    --btn-shadow-color: var(--button-shadow-color);
+    --btn-shadow-inner-color: var(--button-shadow-inner-color);
+
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset -1px -1px 0 var(--btn-shadow-inner-color);
+  }
+
+  .button-box.verbose:not(:disabled):hover {
+    --btn-shadow-inner-color: #dee0e1;
+    --btn-shadow-color: #b0b9ce;
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset 2px 3px 0 var(--btn-shadow-inner-color);
+  }
+
+  .dark .button-box.verbose {
+    --btn-color: #26343e;
+    --btn-text: #fff;
+    --btn-border-color: #e5f1fa;
+    --btn-shadow-color: #e5f1fa;
+  }
+
+  .dark .button-box.verbose:not(:disabled):hover {
+    --btn-shadow-inner-color: #8b9494;
+    box-shadow:
+      inset -3px -3px 0 var(--btn-shadow-color),
+      inset 2px 3px 0 var(--btn-shadow-inner-color);
+  }
+
+  .button-box-small {
+    /* Default color variable (can be overridden by variants) */
+    --btn-color: var(--bg-color);
+    --border-color: var(--text-color);
+    --shadow-color: var(--text-color);
+
+    @apply inline-flex items-center justify-center gap-2 rounded-lg 
+    px-4 py-1.5 font-semibold text-xs;
+
+    background-color: var(--btn-color);
+    border: 1px solid var(--border-color);
+    box-shadow: 2px 2px 0 var(--shadow-color);
+  }
+
+  .button-box-small:hover {
+    @apply translate-x-px translate-y-px;
+    box-shadow: 1px 1px 0 var(--btn-color);
+  }
+
+  .button-box-small:active {
+    @apply translate-x-0.5 translate-y-0.5;
+    box-shadow: none;
+  }
+
+  .button-box-small.primary {
+    --btn-color: #dae5fd;
+    --shadow-color: var(--primary-color);
+    --border-color: var(--primary-color);
+  }
+
+  .dark .button-box-small.primary {
+    --btn-color: var(--primary-color);
+    --shadow-color: #dae5fd;
+    --border-color: #dae5fd;
+  }
+
+  .button-box-small.danger {
+    --btn-color: rgba(253, 179, 179, 0.337);
+    --shadow-color: #da6f6f;
+    --border-color: #ff5959;
+    @apply text-red-600;
+  }
+
+  .dark .button-box-small.danger {
+    --btn-color: rgba(83, 21, 21, 0.431);
+  }
+
+  .button-box-small.success {
+    --btn-color: #16a34a;
+    @apply text-green-600;
+  }
+
+  .text-input {
+    @apply inline-flex w-full justify-center items-center border border-(--border-color) font-medium shadow-[2px_2px_0_var(--shadow-color)] bg-transparent text-(--text-color) focus:shadow-[2px_2px_0_blue] focus:outline-none focus:ring-offset-0 focus:ring-(--text-color) pl-10 pr-4 py-3 rounded-lg transition-colors;
+  }
+
+  .box-inner-card {
+    @apply rounded-xl rounded-tr-2xl border-l border-t border-(--border-color) bg-(--bg-color) shadow-[inset_-3px_-3px_0px_var(--shadow-color),inset_3px_3px_0px_var(--inner-shadow-color),inset_-3px_-3px_0px_var(--inner-shadow-color),inset_-3px_-3px_0px_var(--shadow-color)];
+  }
+
+  .box-modal {
+    @apply w-full sm:w-auto sm:rounded-xl sm:rounded-tr-2xl sm:border-l sm:border-t sm:border-(--border-color) bg-(--bg-modal) sm:shadow-[inset_-3px_-3px_0px_var(--shadow-color),inset_3px_3px_0px_var(--inner-shadow-color),inset_-3px_-3px_0px_var(--inner-shadow-color),inset_-3px_-3px_0px_var(--shadow-color)] overflow-y-scroll max-h-screen p-6;
+  }
+
+  .sidebar-item {
+    --bg-item-color: #dfe7fe;
+    --shadow-color: var(--primary-color);
+
+    @apply border border-transparent hover:bg-(--bg-item-color)/30 dark:hover:bg-gray-800/30 hover:translate-x-0.5 hover:translate-y-0.5 hover:shadow-[2px_2px_0_var(--shadow-color)]/80 hover:border hover:border-(--shadow-color)/80;
+  }
+
+  .sidebar-item.active {
+    --bg-item-color: #dfe7fe;
+    --shadow-color: var(--primary-color);
+
+    @apply bg-(--bg-item-color) border-l border-t border-(--shadow-color) text-(--text-color) shadow-[3px_3px_0_var(--shadow-color)];
+  }
+
+  .dark .sidebar-item.active {
+    --bg-item-color: var(--primary-color);
+    --shadow-color: #dfe7fe;
+  }
+
+  .dark .sidebar-item {
+    --bg-item-color: var(--primary-color);
+    --shadow-color: #dfe7fe;
+  }
+
+  .box-shadow-card {
+    @apply shadow-[4px_4px_0_var(--shadow-color)] rounded-lg border border-(--border-color) bg-(--bg-color) transition-colors;
+  }
+
+  .card-box {
+    @apply shadow-[4px_4px_0_var(--shadow-color)] rounded-lg border border-(--border-color) bg-(--bg-color) relative flex items-center justify-between px-3 py-2 hover:shadow-[5px_5px_0_var(--shadow-color-hover)] hover:-translate-x-0.5 hover:-translate-y-0.5 transition-all;
   }
 
   body {

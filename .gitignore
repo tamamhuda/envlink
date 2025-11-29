@@ -26,6 +26,5 @@ logs
 
 GEMINI.md
 
-client/src/core/*
-client/generator/*
-openapitools.json
+client/
+client/*

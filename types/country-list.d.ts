@@ -6,4 +6,6 @@ declare module "country-list" {
 
   function getNames(): string[];
   function getCode(name: string): string[];
+  function getCodes(): string[];
+  function getName(code: string): string[];
 }

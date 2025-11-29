@@ -2,11 +2,11 @@
 
 ## Properties
 
-| Name      | Type   |
-| --------- | ------ |
-| `total`   | number |
-| `unique`  | number |
-| `country` | string |
+| Name          | Type   |
+| ------------- | ------ |
+| `total`       | number |
+| `unique`      | number |
+| `countryCode` | string |
 
 ## Example
 
@@ -17,7 +17,7 @@ import type { TopUrlsDataCountryVisitsInner } from "";
 const example = {
   total: null,
   unique: null,
-  country: null,
+  countryCode: null,
 } satisfies TopUrlsDataCountryVisitsInner;
 
 console.log(example);

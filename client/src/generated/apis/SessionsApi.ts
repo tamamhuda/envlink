@@ -35,6 +35,10 @@ export interface GetByIdRequest {
   id: string;
 }
 
+export interface RevokeAllRequest {
+  keepCurrent?: boolean;
+}
+
 export interface RevokeByIdRequest {
   id: string;
 }
@@ -91,11 +95,13 @@ export interface SessionsApiInterface {
   /**
    *
    * @summary Revoke all user sessions
+   * @param {boolean} [keepCurrent] Keep current session
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof SessionsApiInterface
    */
   revokeAllRaw(
+    requestParameters: RevokeAllRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<void>>;
 
@@ -103,6 +109,7 @@ export interface SessionsApiInterface {
    * Revoke all user sessions
    */
   revokeAll(
+    requestParameters: RevokeAllRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<void>;
 
@@ -166,7 +173,7 @@ export class SessionsApi
       }
     }
 
-    let urlPath = `/api/v1/session`;
+    let urlPath = `/api/v1/sessions`;
 
     const response = await this.request(
       {
@@ -221,7 +228,7 @@ export class SessionsApi
       }
     }
 
-    let urlPath = `/api/v1/session/{id}`;
+    let urlPath = `/api/v1/sessions/{id}`;
     urlPath = urlPath.replace(
       `{${"id"}}`,
       encodeURIComponent(String(requestParameters["id"])),
@@ -257,9 +264,14 @@ export class SessionsApi
    * Revoke all user sessions
    */
   async revokeAllRaw(
+    requestParameters: RevokeAllRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<void>> {
     const queryParameters: any = {};
+
+    if (requestParameters["keepCurrent"] != null) {
+      queryParameters["keepCurrent"] = requestParameters["keepCurrent"];
+    }
 
     const headerParameters: runtime.HTTPHeaders = {};
 
@@ -272,7 +284,7 @@ export class SessionsApi
       }
     }
 
-    let urlPath = `/api/v1/session/revoke`;
+    let urlPath = `/api/v1/sessions/revoke`;
 
     const response = await this.request(
       {
@@ -291,9 +303,10 @@ export class SessionsApi
    * Revoke all user sessions
    */
   async revokeAll(
+    requestParameters: RevokeAllRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<void> {
-    await this.revokeAllRaw(initOverrides);
+    await this.revokeAllRaw(requestParameters, initOverrides);
   }
 
   /**
@@ -323,7 +336,7 @@ export class SessionsApi
       }
     }
 
-    let urlPath = `/api/v1/session/revoke/{id}`;
+    let urlPath = `/api/v1/sessions/revoke/{id}`;
     urlPath = urlPath.replace(
       `{${"id"}}`,
       encodeURIComponent(String(requestParameters["id"])),

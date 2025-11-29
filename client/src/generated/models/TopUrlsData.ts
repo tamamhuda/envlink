@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
-import type { UrlAnalyticStatDeviceVisitsValue } from "./UrlAnalyticStatDeviceVisitsValue";
+import type { TopUrlsDataCityVisitsInner } from "./TopUrlsDataCityVisitsInner";
 import {
-  UrlAnalyticStatDeviceVisitsValueFromJSON,
-  UrlAnalyticStatDeviceVisitsValueFromJSONTyped,
-  UrlAnalyticStatDeviceVisitsValueToJSON,
-  UrlAnalyticStatDeviceVisitsValueToJSONTyped,
-} from "./UrlAnalyticStatDeviceVisitsValue";
+  TopUrlsDataCityVisitsInnerFromJSON,
+  TopUrlsDataCityVisitsInnerFromJSONTyped,
+  TopUrlsDataCityVisitsInnerToJSON,
+  TopUrlsDataCityVisitsInnerToJSONTyped,
+} from "./TopUrlsDataCityVisitsInner";
 import type { TopUrlsDataUrl } from "./TopUrlsDataUrl";
 import {
   TopUrlsDataUrlFromJSON,
@@ -34,6 +34,20 @@ import {
   TopUrlsDataCountryVisitsInnerToJSON,
   TopUrlsDataCountryVisitsInnerToJSONTyped,
 } from "./TopUrlsDataCountryVisitsInner";
+import type { UrlAnalyticsSegmentsDeviceVisitsValue } from "./UrlAnalyticsSegmentsDeviceVisitsValue";
+import {
+  UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
+  UrlAnalyticsSegmentsDeviceVisitsValueFromJSONTyped,
+  UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
+  UrlAnalyticsSegmentsDeviceVisitsValueToJSONTyped,
+} from "./UrlAnalyticsSegmentsDeviceVisitsValue";
+import type { TopUrlsDataRegionVisitsInner } from "./TopUrlsDataRegionVisitsInner";
+import {
+  TopUrlsDataRegionVisitsInnerFromJSON,
+  TopUrlsDataRegionVisitsInnerFromJSONTyped,
+  TopUrlsDataRegionVisitsInnerToJSON,
+  TopUrlsDataRegionVisitsInnerToJSONTyped,
+} from "./TopUrlsDataRegionVisitsInner";
 
 /**
  *
@@ -73,28 +87,46 @@ export interface TopUrlsData {
   lastVisit: Date;
   /**
    *
-   * @type {{ [key: string]: UrlAnalyticStatDeviceVisitsValue; }}
+   * @type {{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }}
    * @memberof TopUrlsData
    */
-  deviceVisits: { [key: string]: UrlAnalyticStatDeviceVisitsValue };
+  deviceVisits: { [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue };
   /**
    *
-   * @type {{ [key: string]: UrlAnalyticStatDeviceVisitsValue; }}
+   * @type {{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }}
    * @memberof TopUrlsData
    */
-  osVisits: { [key: string]: UrlAnalyticStatDeviceVisitsValue };
+  osVisits: { [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue };
   /**
    *
-   * @type {{ [key: string]: UrlAnalyticStatDeviceVisitsValue; }}
+   * @type {{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }}
    * @memberof TopUrlsData
    */
-  browserVisits?: { [key: string]: UrlAnalyticStatDeviceVisitsValue };
+  browserVisits?: { [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue };
   /**
    *
    * @type {Array<TopUrlsDataCountryVisitsInner>}
    * @memberof TopUrlsData
    */
   countryVisits?: Array<TopUrlsDataCountryVisitsInner>;
+  /**
+   *
+   * @type {{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }}
+   * @memberof TopUrlsData
+   */
+  referrerVisits?: { [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue };
+  /**
+   *
+   * @type {Array<TopUrlsDataRegionVisitsInner>}
+   * @memberof TopUrlsData
+   */
+  regionVisits?: Array<TopUrlsDataRegionVisitsInner>;
+  /**
+   *
+   * @type {Array<TopUrlsDataCityVisitsInner>}
+   * @memberof TopUrlsData
+   */
+  cityVisits?: Array<TopUrlsDataCityVisitsInner>;
 }
 
 /**
@@ -131,24 +163,43 @@ export function TopUrlsDataFromJSONTyped(
     lastVisit: new Date(json["last_visit"]),
     deviceVisits: mapValues(
       json["device_visits"],
-      UrlAnalyticStatDeviceVisitsValueFromJSON,
+      UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
     ),
     osVisits: mapValues(
       json["os_visits"],
-      UrlAnalyticStatDeviceVisitsValueFromJSON,
+      UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
     ),
     browserVisits:
       json["browser_visits"] == null
         ? undefined
         : mapValues(
             json["browser_visits"],
-            UrlAnalyticStatDeviceVisitsValueFromJSON,
+            UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
           ),
     countryVisits:
       json["country_visits"] == null
         ? undefined
         : (json["country_visits"] as Array<any>).map(
             TopUrlsDataCountryVisitsInnerFromJSON,
+          ),
+    referrerVisits:
+      json["referrer_visits"] == null
+        ? undefined
+        : mapValues(
+            json["referrer_visits"],
+            UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
+          ),
+    regionVisits:
+      json["region_visits"] == null
+        ? undefined
+        : (json["region_visits"] as Array<any>).map(
+            TopUrlsDataRegionVisitsInnerFromJSON,
+          ),
+    cityVisits:
+      json["city_visits"] == null
+        ? undefined
+        : (json["city_visits"] as Array<any>).map(
+            TopUrlsDataCityVisitsInnerFromJSON,
           ),
   };
 }
@@ -173,24 +224,43 @@ export function TopUrlsDataToJSONTyped(
     last_visit: value["lastVisit"].toISOString(),
     device_visits: mapValues(
       value["deviceVisits"],
-      UrlAnalyticStatDeviceVisitsValueToJSON,
+      UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
     ),
     os_visits: mapValues(
       value["osVisits"],
-      UrlAnalyticStatDeviceVisitsValueToJSON,
+      UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
     ),
     browser_visits:
       value["browserVisits"] == null
         ? undefined
         : mapValues(
             value["browserVisits"],
-            UrlAnalyticStatDeviceVisitsValueToJSON,
+            UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
           ),
     country_visits:
       value["countryVisits"] == null
         ? undefined
         : (value["countryVisits"] as Array<any>).map(
             TopUrlsDataCountryVisitsInnerToJSON,
+          ),
+    referrer_visits:
+      value["referrerVisits"] == null
+        ? undefined
+        : mapValues(
+            value["referrerVisits"],
+            UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
+          ),
+    region_visits:
+      value["regionVisits"] == null
+        ? undefined
+        : (value["regionVisits"] as Array<any>).map(
+            TopUrlsDataRegionVisitsInnerToJSON,
+          ),
+    city_visits:
+      value["cityVisits"] == null
+        ? undefined
+        : (value["cityVisits"] as Array<any>).map(
+            TopUrlsDataCityVisitsInnerToJSON,
           ),
   };
 }

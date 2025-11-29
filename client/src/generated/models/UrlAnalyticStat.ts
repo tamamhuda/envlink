@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
-import type { UrlAnalyticStatDeviceVisitsValue } from "./UrlAnalyticStatDeviceVisitsValue";
+import type { CityVisitsData } from "./CityVisitsData";
 import {
-  UrlAnalyticStatDeviceVisitsValueFromJSON,
-  UrlAnalyticStatDeviceVisitsValueFromJSONTyped,
-  UrlAnalyticStatDeviceVisitsValueToJSON,
-  UrlAnalyticStatDeviceVisitsValueToJSONTyped,
-} from "./UrlAnalyticStatDeviceVisitsValue";
+  CityVisitsDataFromJSON,
+  CityVisitsDataFromJSONTyped,
+  CityVisitsDataToJSON,
+  CityVisitsDataToJSONTyped,
+} from "./CityVisitsData";
 import type { CountryVisitsData } from "./CountryVisitsData";
 import {
   CountryVisitsDataFromJSON,
@@ -34,6 +34,20 @@ import {
   UrlAnalyticStatUrlToJSON,
   UrlAnalyticStatUrlToJSONTyped,
 } from "./UrlAnalyticStatUrl";
+import type { UrlAnalyticsSegmentsDeviceVisitsValue } from "./UrlAnalyticsSegmentsDeviceVisitsValue";
+import {
+  UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
+  UrlAnalyticsSegmentsDeviceVisitsValueFromJSONTyped,
+  UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
+  UrlAnalyticsSegmentsDeviceVisitsValueToJSONTyped,
+} from "./UrlAnalyticsSegmentsDeviceVisitsValue";
+import type { RegionVisitsData } from "./RegionVisitsData";
+import {
+  RegionVisitsDataFromJSON,
+  RegionVisitsDataFromJSONTyped,
+  RegionVisitsDataToJSON,
+  RegionVisitsDataToJSONTyped,
+} from "./RegionVisitsData";
 
 /**
  *
@@ -73,28 +87,46 @@ export interface UrlAnalyticStat {
   lastVisit: Date;
   /**
    *
-   * @type {{ [key: string]: UrlAnalyticStatDeviceVisitsValue; }}
+   * @type {{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }}
    * @memberof UrlAnalyticStat
    */
-  deviceVisits: { [key: string]: UrlAnalyticStatDeviceVisitsValue };
+  deviceVisits: { [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue };
   /**
    *
-   * @type {{ [key: string]: UrlAnalyticStatDeviceVisitsValue; }}
+   * @type {{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }}
    * @memberof UrlAnalyticStat
    */
-  osVisits: { [key: string]: UrlAnalyticStatDeviceVisitsValue };
+  osVisits: { [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue };
   /**
    *
-   * @type {{ [key: string]: UrlAnalyticStatDeviceVisitsValue; }}
+   * @type {{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }}
    * @memberof UrlAnalyticStat
    */
-  browserVisits?: { [key: string]: UrlAnalyticStatDeviceVisitsValue };
+  browserVisits?: { [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue };
   /**
    *
    * @type {Array<CountryVisitsData>}
    * @memberof UrlAnalyticStat
    */
   countryVisits?: Array<CountryVisitsData>;
+  /**
+   *
+   * @type {{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }}
+   * @memberof UrlAnalyticStat
+   */
+  referrerVisits?: { [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue };
+  /**
+   *
+   * @type {Array<RegionVisitsData>}
+   * @memberof UrlAnalyticStat
+   */
+  regionVisits?: Array<RegionVisitsData>;
+  /**
+   *
+   * @type {Array<CityVisitsData>}
+   * @memberof UrlAnalyticStat
+   */
+  cityVisits?: Array<CityVisitsData>;
 }
 
 /**
@@ -133,23 +165,38 @@ export function UrlAnalyticStatFromJSONTyped(
     lastVisit: new Date(json["last_visit"]),
     deviceVisits: mapValues(
       json["device_visits"],
-      UrlAnalyticStatDeviceVisitsValueFromJSON,
+      UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
     ),
     osVisits: mapValues(
       json["os_visits"],
-      UrlAnalyticStatDeviceVisitsValueFromJSON,
+      UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
     ),
     browserVisits:
       json["browser_visits"] == null
         ? undefined
         : mapValues(
             json["browser_visits"],
-            UrlAnalyticStatDeviceVisitsValueFromJSON,
+            UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
           ),
     countryVisits:
       json["country_visits"] == null
         ? undefined
         : (json["country_visits"] as Array<any>).map(CountryVisitsDataFromJSON),
+    referrerVisits:
+      json["referrer_visits"] == null
+        ? undefined
+        : mapValues(
+            json["referrer_visits"],
+            UrlAnalyticsSegmentsDeviceVisitsValueFromJSON,
+          ),
+    regionVisits:
+      json["region_visits"] == null
+        ? undefined
+        : (json["region_visits"] as Array<any>).map(RegionVisitsDataFromJSON),
+    cityVisits:
+      json["city_visits"] == null
+        ? undefined
+        : (json["city_visits"] as Array<any>).map(CityVisitsDataFromJSON),
   };
 }
 
@@ -173,22 +220,37 @@ export function UrlAnalyticStatToJSONTyped(
     last_visit: value["lastVisit"].toISOString(),
     device_visits: mapValues(
       value["deviceVisits"],
-      UrlAnalyticStatDeviceVisitsValueToJSON,
+      UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
     ),
     os_visits: mapValues(
       value["osVisits"],
-      UrlAnalyticStatDeviceVisitsValueToJSON,
+      UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
     ),
     browser_visits:
       value["browserVisits"] == null
         ? undefined
         : mapValues(
             value["browserVisits"],
-            UrlAnalyticStatDeviceVisitsValueToJSON,
+            UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
           ),
     country_visits:
       value["countryVisits"] == null
         ? undefined
         : (value["countryVisits"] as Array<any>).map(CountryVisitsDataToJSON),
+    referrer_visits:
+      value["referrerVisits"] == null
+        ? undefined
+        : mapValues(
+            value["referrerVisits"],
+            UrlAnalyticsSegmentsDeviceVisitsValueToJSON,
+          ),
+    region_visits:
+      value["regionVisits"] == null
+        ? undefined
+        : (value["regionVisits"] as Array<any>).map(RegionVisitsDataToJSON),
+    city_visits:
+      value["cityVisits"] == null
+        ? undefined
+        : (value["cityVisits"] as Array<any>).map(CityVisitsDataToJSON),
   };
 }

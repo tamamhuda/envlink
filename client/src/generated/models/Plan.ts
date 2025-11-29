@@ -67,6 +67,18 @@ export interface Plan {
    * @memberof Plan
    */
   features: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof Plan
+   */
+  cta: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof Plan
+   */
+  popular?: boolean;
 }
 
 /**
@@ -93,6 +105,7 @@ export function instanceOfPlan(value: object): value is Plan {
     return false;
   if (!("price" in value) || value["price"] === undefined) return false;
   if (!("features" in value) || value["features"] === undefined) return false;
+  if (!("cta" in value) || value["cta"] === undefined) return false;
   return true;
 }
 
@@ -117,6 +130,8 @@ export function PlanFromJSONTyped(
     description: json["description"],
     price: json["price"],
     features: json["features"],
+    cta: json["cta"],
+    popular: json["popular"] == null ? undefined : json["popular"],
   };
 }
 
@@ -141,5 +156,7 @@ export function PlanToJSONTyped(
     description: value["description"],
     price: value["price"],
     features: value["features"],
+    cta: value["cta"],
+    popular: value["popular"],
   };
 }

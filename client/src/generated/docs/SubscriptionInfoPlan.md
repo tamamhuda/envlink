@@ -12,6 +12,8 @@
 | `description`     | string              |
 | `price`           | number              |
 | `features`        | Array&lt;string&gt; |
+| `cta`             | string              |
+| `popular`         | boolean             |
 
 ## Example
 
@@ -28,6 +30,8 @@ const example = {
   description: null,
   price: null,
   features: null,
+  cta: null,
+  popular: null,
 } satisfies SubscriptionInfoPlan;
 
 console.log(example);

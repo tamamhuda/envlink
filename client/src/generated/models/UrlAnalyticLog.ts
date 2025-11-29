@@ -80,7 +80,7 @@ export interface UrlAnalyticLog {
    * @type {string}
    * @memberof UrlAnalyticLog
    */
-  country: string;
+  countryCode: string;
   /**
    *
    * @type {string}
@@ -145,7 +145,8 @@ export function instanceOfUrlAnalyticLog(
   if (!("referrer" in value) || value["referrer"] === undefined) return false;
   if (!("region" in value) || value["region"] === undefined) return false;
   if (!("city" in value) || value["city"] === undefined) return false;
-  if (!("country" in value) || value["country"] === undefined) return false;
+  if (!("countryCode" in value) || value["countryCode"] === undefined)
+    return false;
   if (!("deviceType" in value) || value["deviceType"] === undefined)
     return false;
   if (!("os" in value) || value["os"] === undefined) return false;
@@ -179,7 +180,7 @@ export function UrlAnalyticLogFromJSONTyped(
     referrer: json["referrer"],
     region: json["region"],
     city: json["city"],
-    country: json["country"],
+    countryCode: json["country_code"],
     deviceType: json["device_type"],
     os: json["os"],
     language: json["language"],
@@ -212,7 +213,7 @@ export function UrlAnalyticLogToJSONTyped(
     referrer: value["referrer"],
     region: value["region"],
     city: value["city"],
-    country: value["country"],
+    country_code: value["countryCode"],
     device_type: value["deviceType"],
     os: value["os"],
     language: value["language"],

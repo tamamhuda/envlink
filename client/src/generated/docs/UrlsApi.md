@@ -2,19 +2,19 @@
 
 All URIs are relative to *https://local-nest.utadev.app*
 
-| Method                             | HTTP request                 | Description                   |
-| ---------------------------------- | ---------------------------- | ----------------------------- |
-| [**\_delete**](UrlsApi.md#_delete) | **DELETE** /api/v1/urls/{id} | Delete a short URL            |
-| [**getAll**](UrlsApi.md#getall)    | **GET** /api/v1/urls         | Get all short URLs for a user |
-| [**getById**](UrlsApi.md#getbyid)  | **GET** /api/v1/urls/{id}    | Get a short URL by id         |
-| [**shorten**](UrlsApi.md#shorten)  | **POST** /api/v1/urls        | Create a new short URL        |
-| [**update**](UrlsApi.md#update)    | **PUT** /api/v1/urls/{id}    | Update a short URL            |
+| Method                             | HTTP request                 | Description            |
+| ---------------------------------- | ---------------------------- | ---------------------- |
+| [**\_delete**](UrlsApi.md#_delete) | **DELETE** /api/v1/urls/{id} | Delete a URL           |
+| [**getAll**](UrlsApi.md#getall)    | **GET** /api/v1/urls         | Get all URLs paginated |
+| [**getById**](UrlsApi.md#getbyid)  | **GET** /api/v1/urls/{id}    | Get a URL by id        |
+| [**shorten**](UrlsApi.md#shorten)  | **POST** /api/v1/urls        | Create a new URL       |
+| [**update**](UrlsApi.md#update)    | **PUT** /api/v1/urls/{id}    | Update a URL           |
 
 ## \_delete
 
 > \_delete(id)
 
-Delete a short URL
+Delete a URL
 
 ### Example
 
@@ -68,18 +68,18 @@ example().catch(console.error);
 
 ### HTTP response details
 
-| Status code | Description                     | Response headers |
-| ----------- | ------------------------------- | ---------------- |
-| **204**     | Delete a short URL successfully | -                |
-| **4XX**     | API Error Response              | -                |
+| Status code | Description               | Response headers |
+| ----------- | ------------------------- | ---------------- |
+| **204**     | Delete a URL successfully | -                |
+| **4XX**     | API Error Response        | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 ## getAll
 
-> AllUrlsResponse getAll()
+> UrlPaginatedResponse getAll(page, limit)
 
-Get all short URLs for a user
+Get all URLs paginated
 
 ### Example
 
@@ -95,8 +95,15 @@ async function example() {
   });
   const api = new UrlsApi(config);
 
+  const body = {
+    // number | Page number (optional)
+    page: 1,
+    // number | Page size (optional)
+    limit: 10,
+  } satisfies GetAllRequest;
+
   try {
-    const data = await api.getAll();
+    const data = await api.getAll(body);
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -109,11 +116,14 @@ example().catch(console.error);
 
 ### Parameters
 
-This endpoint does not need any parameter.
+| Name      | Type     | Description | Notes                        |
+| --------- | -------- | ----------- | ---------------------------- |
+| **page**  | `number` | Page number | [Optional] [Defaults to `1`] |
+| **limit** | `number` | Page size   | [Optional] [Defaults to `1`] |
 
 ### Return type
 
-[**AllUrlsResponse**](AllUrlsResponse.md)
+[**UrlPaginatedResponse**](UrlPaginatedResponse.md)
 
 ### Authorization
 
@@ -126,10 +136,10 @@ This endpoint does not need any parameter.
 
 ### HTTP response details
 
-| Status code | Description                                | Response headers |
-| ----------- | ------------------------------------------ | ---------------- |
-| **200**     | Get all short URLs for a user successfully | -                |
-| **4XX**     | API Error Response                         | -                |
+| Status code | Description                                    | Response headers |
+| ----------- | ---------------------------------------------- | ---------------- |
+| **200**     | Get all URLs paginated for a user successfully | -                |
+| **4XX**     | API Error Response                             | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -137,7 +147,7 @@ This endpoint does not need any parameter.
 
 > UrlResponse getById(id)
 
-Get a short URL by id
+Get a URL by id
 
 ### Example
 
@@ -191,10 +201,10 @@ example().catch(console.error);
 
 ### HTTP response details
 
-| Status code | Description                        | Response headers |
-| ----------- | ---------------------------------- | ---------------- |
-| **200**     | Get a short URL by id successfully | -                |
-| **4XX**     | API Error Response                 | -                |
+| Status code | Description                  | Response headers |
+| ----------- | ---------------------------- | ---------------- |
+| **200**     | Get a URL by id successfully | -                |
+| **4XX**     | API Error Response           | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -202,7 +212,7 @@ example().catch(console.error);
 
 > UrlResponse shorten(shortenUrlRequest)
 
-Create a new short URL
+Create a new URL
 
 ### Example
 
@@ -259,10 +269,10 @@ example().catch(console.error);
 
 ### HTTP response details
 
-| Status code | Description             | Response headers |
-| ----------- | ----------------------- | ---------------- |
-| **201**     | Created a new short URL | -                |
-| **4XX**     | API Error Response      | -                |
+| Status code | Description        | Response headers |
+| ----------- | ------------------ | ---------------- |
+| **201**     | Created a new URL  | -                |
+| **4XX**     | API Error Response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
@@ -270,7 +280,7 @@ example().catch(console.error);
 
 > UrlResponse update(id, updateUrlRequest)
 
-Update a short URL
+Update a URL
 
 ### Example
 
@@ -332,7 +342,7 @@ example().catch(console.error);
 
 | Status code | Description        | Response headers |
 | ----------- | ------------------ | ---------------- |
-| **200**     | Update a short URL | -                |
+| **200**     | Update a URL       | -                |
 | **4XX**     | API Error Response | -                |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)

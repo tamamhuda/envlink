@@ -15,7 +15,10 @@
 | `description`     | string                                     |
 | `price`           | number                                     |
 | `features`        | Array&lt;string&gt;                        |
+| `cta`             | string                                     |
+| `popular`         | boolean                                    |
 | `upgradable`      | boolean                                    |
+| `currentPlan`     | string                                     |
 | `options`         | [Array&lt;OptionsData&gt;](OptionsData.md) |
 
 ## Example
@@ -36,7 +39,10 @@ const example = {
   description: null,
   price: null,
   features: null,
+  cta: null,
+  popular: null,
   upgradable: null,
+  currentPlan: null,
   options: null,
 } satisfies SubscriptionUpgradeOption;
 

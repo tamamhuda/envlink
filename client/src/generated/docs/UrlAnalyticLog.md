@@ -12,7 +12,7 @@
 | `referrer`     | string                                       |
 | `region`       | string                                       |
 | `city`         | string                                       |
-| `country`      | string                                       |
+| `countryCode`  | string                                       |
 | `deviceType`   | string                                       |
 | `os`           | string                                       |
 | `language`     | string                                       |
@@ -37,7 +37,7 @@ const example = {
   referrer: null,
   region: null,
   city: null,
-  country: null,
+  countryCode: null,
   deviceType: null,
   os: null,
   language: null,

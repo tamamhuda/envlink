@@ -18,6 +18,7 @@ import * as TransactionsApiModule from "./generated/apis/TransactionsApi";
 import * as UrlsApiModule from "./generated/apis/UrlsApi";
 import * as UserApiModule from "./generated/apis/UserApi";
 import * as BillingAddressApiModule from "./generated/apis/BillingAddressApi";
+import * as OAuthApiModule from "./generated/apis/OAuthApi";
 
 import { EnvlinkConfiguration } from "./wrap/config";
 import { initAuthScheduler, reactiveApi } from "./wrap/reactiveApi2";
@@ -37,6 +38,7 @@ type EnvlinkApis = {
   transactions: TransactionsApiModule.TransactionsApi;
   urls: UrlsApiModule.UrlsApi;
   user: UserApiModule.UserApi;
+  oauth: OAuthApiModule.OAuthApi;
 };
 
 export class EnvlinkClient {
@@ -54,6 +56,7 @@ export class EnvlinkClient {
   public transactions: ReactiveApi<TransactionsApiModule.TransactionsApi>;
   public urls: ReactiveApi<UrlsApiModule.UrlsApi>;
   public user: ReactiveApi<UserApiModule.UserApi>;
+  public oauth: ReactiveApi<OAuthApiModule.OAuthApi>;
 
   constructor({ config, auth, onError }: EnvlinkClientOptions) {
     const configuration = new EnvlinkConfiguration(config, auth);
@@ -131,6 +134,11 @@ export class EnvlinkClient {
       auth,
       onError,
     );
+    this.oauth = reactiveApi(
+      new OAuthApiModule.OAuthApi(configuration),
+      auth,
+      onError,
+    );
   }
 }
 
@@ -182,5 +190,6 @@ export function createEnvlinkClient(config: Configuration, auth?: AuthConfig) {
     ),
     urls: reactiveApi(new UrlsApiModule.UrlsApi(configuration), auth),
     user: reactiveApi(new UserApiModule.UserApi(configuration), auth),
+    oauth: reactiveApi(new OAuthApiModule.OAuthApi(configuration), auth),
   } as { [K in keyof EnvlinkApis]: ReactiveApi<EnvlinkApis[K]> };
 }

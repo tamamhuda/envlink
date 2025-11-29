@@ -2,17 +2,20 @@
 
 ## Properties
 
-| Name             | Type                                                                                        |
-| ---------------- | ------------------------------------------------------------------------------------------- |
-| `url`            | [UrlAnalyticStatUrl](UrlAnalyticStatUrl.md)                                                 |
-| `totalVisit`     | number                                                                                      |
-| `uniqueVisitors` | number                                                                                      |
-| `firstVisit`     | Date                                                                                        |
-| `lastVisit`      | Date                                                                                        |
-| `deviceVisits`   | [{ [key: string]: UrlAnalyticStatDeviceVisitsValue; }](UrlAnalyticStatDeviceVisitsValue.md) |
-| `osVisits`       | [{ [key: string]: UrlAnalyticStatDeviceVisitsValue; }](UrlAnalyticStatDeviceVisitsValue.md) |
-| `browserVisits`  | [{ [key: string]: UrlAnalyticStatDeviceVisitsValue; }](UrlAnalyticStatDeviceVisitsValue.md) |
-| `countryVisits`  | [Array&lt;CountryVisitsData&gt;](CountryVisitsData.md)                                      |
+| Name             | Type                                                                                                  |
+| ---------------- | ----------------------------------------------------------------------------------------------------- |
+| `url`            | [UrlAnalyticStatUrl](UrlAnalyticStatUrl.md)                                                           |
+| `totalVisit`     | number                                                                                                |
+| `uniqueVisitors` | number                                                                                                |
+| `firstVisit`     | Date                                                                                                  |
+| `lastVisit`      | Date                                                                                                  |
+| `deviceVisits`   | [{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }](UrlAnalyticsSegmentsDeviceVisitsValue.md) |
+| `osVisits`       | [{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }](UrlAnalyticsSegmentsDeviceVisitsValue.md) |
+| `browserVisits`  | [{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }](UrlAnalyticsSegmentsDeviceVisitsValue.md) |
+| `countryVisits`  | [Array&lt;CountryVisitsData&gt;](CountryVisitsData.md)                                                |
+| `referrerVisits` | [{ [key: string]: UrlAnalyticsSegmentsDeviceVisitsValue; }](UrlAnalyticsSegmentsDeviceVisitsValue.md) |
+| `regionVisits`   | [Array&lt;RegionVisitsData&gt;](RegionVisitsData.md)                                                  |
+| `cityVisits`     | [Array&lt;CityVisitsData&gt;](CityVisitsData.md)                                                      |
 
 ## Example
 
@@ -30,6 +33,9 @@ const example = {
   osVisits: null,
   browserVisits: null,
   countryVisits: null,
+  referrerVisits: null,
+  regionVisits: null,
+  cityVisits: null,
 } satisfies UrlAnalyticStat;
 
 console.log(example);

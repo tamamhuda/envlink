@@ -33,18 +33,6 @@ export interface OptionsData {
   upgradable: boolean;
   /**
    *
-   * @type {string}
-   * @memberof OptionsData
-   */
-  currentPlan: OptionsDataCurrentPlanEnum;
-  /**
-   *
-   * @type {string}
-   * @memberof OptionsData
-   */
-  newPlan: OptionsDataNewPlanEnum;
-  /**
-   *
    * @type {number}
    * @memberof OptionsData
    */
@@ -86,39 +74,12 @@ export type OptionsDataStrategyEnum =
   (typeof OptionsDataStrategyEnum)[keyof typeof OptionsDataStrategyEnum];
 
 /**
- * @export
- */
-export const OptionsDataCurrentPlanEnum = {
-  Free: "Free",
-  Pro: "Pro",
-  Starter: "Starter",
-  Enterprise: "Enterprise",
-} as const;
-export type OptionsDataCurrentPlanEnum =
-  (typeof OptionsDataCurrentPlanEnum)[keyof typeof OptionsDataCurrentPlanEnum];
-
-/**
- * @export
- */
-export const OptionsDataNewPlanEnum = {
-  Free: "Free",
-  Pro: "Pro",
-  Starter: "Starter",
-  Enterprise: "Enterprise",
-} as const;
-export type OptionsDataNewPlanEnum =
-  (typeof OptionsDataNewPlanEnum)[keyof typeof OptionsDataNewPlanEnum];
-
-/**
  * Check if a given object implements the OptionsData interface.
  */
 export function instanceOfOptionsData(value: object): value is OptionsData {
   if (!("strategy" in value) || value["strategy"] === undefined) return false;
   if (!("upgradable" in value) || value["upgradable"] === undefined)
     return false;
-  if (!("currentPlan" in value) || value["currentPlan"] === undefined)
-    return false;
-  if (!("newPlan" in value) || value["newPlan"] === undefined) return false;
   if (!("amount" in value) || value["amount"] === undefined) return false;
   if (!("discount" in value) || value["discount"] === undefined) return false;
   if (!("remainingDays" in value) || value["remainingDays"] === undefined)
@@ -143,8 +104,6 @@ export function OptionsDataFromJSONTyped(
   return {
     strategy: json["strategy"],
     upgradable: json["upgradable"],
-    currentPlan: json["current_plan"],
-    newPlan: json["new_plan"],
     amount: json["amount"],
     discount: json["discount"],
     remainingDays: json["remaining_days"],
@@ -168,8 +127,6 @@ export function OptionsDataToJSONTyped(
   return {
     strategy: value["strategy"],
     upgradable: value["upgradable"],
-    current_plan: value["currentPlan"],
-    new_plan: value["newPlan"],
     amount: value["amount"],
     discount: value["discount"],
     remaining_days: value["remainingDays"],

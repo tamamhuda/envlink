@@ -95,10 +95,28 @@ export interface SubscriptionUpgradeOption {
   features: Array<string>;
   /**
    *
+   * @type {string}
+   * @memberof SubscriptionUpgradeOption
+   */
+  cta: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof SubscriptionUpgradeOption
+   */
+  popular?: boolean;
+  /**
+   *
    * @type {boolean}
    * @memberof SubscriptionUpgradeOption
    */
   upgradable: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof SubscriptionUpgradeOption
+   */
+  currentPlan: SubscriptionUpgradeOptionCurrentPlanEnum;
   /**
    *
    * @type {Array<OptionsData>}
@@ -120,6 +138,18 @@ export type SubscriptionUpgradeOptionNameEnum =
   (typeof SubscriptionUpgradeOptionNameEnum)[keyof typeof SubscriptionUpgradeOptionNameEnum];
 
 /**
+ * @export
+ */
+export const SubscriptionUpgradeOptionCurrentPlanEnum = {
+  Free: "Free",
+  Pro: "Pro",
+  Starter: "Starter",
+  Enterprise: "Enterprise",
+} as const;
+export type SubscriptionUpgradeOptionCurrentPlanEnum =
+  (typeof SubscriptionUpgradeOptionCurrentPlanEnum)[keyof typeof SubscriptionUpgradeOptionCurrentPlanEnum];
+
+/**
  * Check if a given object implements the SubscriptionUpgradeOption interface.
  */
 export function instanceOfSubscriptionUpgradeOption(
@@ -137,7 +167,10 @@ export function instanceOfSubscriptionUpgradeOption(
     return false;
   if (!("price" in value) || value["price"] === undefined) return false;
   if (!("features" in value) || value["features"] === undefined) return false;
+  if (!("cta" in value) || value["cta"] === undefined) return false;
   if (!("upgradable" in value) || value["upgradable"] === undefined)
+    return false;
+  if (!("currentPlan" in value) || value["currentPlan"] === undefined)
     return false;
   if (!("options" in value) || value["options"] === undefined) return false;
   return true;
@@ -169,7 +202,10 @@ export function SubscriptionUpgradeOptionFromJSONTyped(
     description: json["description"],
     price: json["price"],
     features: json["features"],
+    cta: json["cta"],
+    popular: json["popular"] == null ? undefined : json["popular"],
     upgradable: json["upgradable"],
+    currentPlan: json["current_plan"],
     options: (json["options"] as Array<any>).map(OptionsDataFromJSON),
   };
 }
@@ -200,7 +236,10 @@ export function SubscriptionUpgradeOptionToJSONTyped(
     description: value["description"],
     price: value["price"],
     features: value["features"],
+    cta: value["cta"],
+    popular: value["popular"],
     upgradable: value["upgradable"],
+    current_plan: value["currentPlan"],
     options: (value["options"] as Array<any>).map(OptionsDataToJSON),
   };
 }

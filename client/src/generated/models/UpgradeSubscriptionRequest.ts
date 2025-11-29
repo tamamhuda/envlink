@@ -65,6 +65,18 @@ export interface UpgradeSubscriptionRequest {
   description: string;
   /**
    *
+   * @type {string}
+   * @memberof UpgradeSubscriptionRequest
+   */
+  successReturnUrl?: string;
+  /**
+   *
+   * @type {string}
+   * @memberof UpgradeSubscriptionRequest
+   */
+  failureReturnUrl?: string;
+  /**
+   *
    * @type {{ [key: string]: any; }}
    * @memberof UpgradeSubscriptionRequest
    */
@@ -127,6 +139,10 @@ export function UpgradeSubscriptionRequestFromJSONTyped(
     discount: json["discount"] == null ? undefined : json["discount"],
     schedule: UpgradeSubscriptionRequestScheduleFromJSON(json["schedule"]),
     description: json["description"],
+    successReturnUrl:
+      json["successReturnUrl"] == null ? undefined : json["successReturnUrl"],
+    failureReturnUrl:
+      json["failureReturnUrl"] == null ? undefined : json["failureReturnUrl"],
     metadata: json["metadata"] == null ? undefined : json["metadata"],
   };
 }
@@ -152,6 +168,8 @@ export function UpgradeSubscriptionRequestToJSONTyped(
     discount: value["discount"],
     schedule: UpgradeSubscriptionRequestScheduleToJSON(value["schedule"]),
     description: value["description"],
+    successReturnUrl: value["successReturnUrl"],
+    failureReturnUrl: value["failureReturnUrl"],
     metadata: value["metadata"],
   };
 }

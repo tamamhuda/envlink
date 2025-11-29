@@ -36,7 +36,7 @@ export interface TopUrlsDataCountryVisitsInner {
    * @type {string}
    * @memberof TopUrlsDataCountryVisitsInner
    */
-  country: string;
+  countryCode: string;
 }
 
 /**
@@ -45,7 +45,8 @@ export interface TopUrlsDataCountryVisitsInner {
 export function instanceOfTopUrlsDataCountryVisitsInner(
   value: object,
 ): value is TopUrlsDataCountryVisitsInner {
-  if (!("country" in value) || value["country"] === undefined) return false;
+  if (!("countryCode" in value) || value["countryCode"] === undefined)
+    return false;
   return true;
 }
 
@@ -65,7 +66,7 @@ export function TopUrlsDataCountryVisitsInnerFromJSONTyped(
   return {
     total: json["total"] == null ? undefined : json["total"],
     unique: json["unique"] == null ? undefined : json["unique"],
-    country: json["country"],
+    countryCode: json["country_code"],
   };
 }
 
@@ -86,6 +87,6 @@ export function TopUrlsDataCountryVisitsInnerToJSONTyped(
   return {
     total: value["total"],
     unique: value["unique"],
-    country: value["country"],
+    country_code: value["countryCode"],
   };
 }

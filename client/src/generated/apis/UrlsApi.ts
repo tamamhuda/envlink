@@ -14,27 +14,32 @@
 
 import * as runtime from "../runtime";
 import type {
-  AllUrlsResponse,
   ErrorResponse,
   ShortenUrlRequest,
   UpdateUrlRequest,
+  UrlPaginatedResponse,
   UrlResponse,
 } from "../models/index";
 import {
-  AllUrlsResponseFromJSON,
-  AllUrlsResponseToJSON,
   ErrorResponseFromJSON,
   ErrorResponseToJSON,
   ShortenUrlRequestFromJSON,
   ShortenUrlRequestToJSON,
   UpdateUrlRequestFromJSON,
   UpdateUrlRequestToJSON,
+  UrlPaginatedResponseFromJSON,
+  UrlPaginatedResponseToJSON,
   UrlResponseFromJSON,
   UrlResponseToJSON,
 } from "../models/index";
 
 export interface DeleteRequest {
   id: string;
+}
+
+export interface GetAllRequest {
+  page?: number;
+  limit?: number;
 }
 
 export interface GetByIdRequest {
@@ -59,7 +64,7 @@ export interface UpdateRequest {
 export interface UrlsApiInterface {
   /**
    *
-   * @summary Delete a short URL
+   * @summary Delete a URL
    * @param {string} id
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -71,7 +76,7 @@ export interface UrlsApiInterface {
   ): Promise<runtime.ApiResponse<void>>;
 
   /**
-   * Delete a short URL
+   * Delete a URL
    */
   _delete(
     requestParameters: DeleteRequest,
@@ -80,25 +85,29 @@ export interface UrlsApiInterface {
 
   /**
    *
-   * @summary Get all short URLs for a user
+   * @summary Get all URLs paginated
+   * @param {number} [page] Page number
+   * @param {number} [limit] Page size
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof UrlsApiInterface
    */
   getAllRaw(
+    requestParameters: GetAllRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<AllUrlsResponse>>;
+  ): Promise<runtime.ApiResponse<UrlPaginatedResponse>>;
 
   /**
-   * Get all short URLs for a user
+   * Get all URLs paginated
    */
   getAll(
+    requestParameters: GetAllRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AllUrlsResponse>;
+  ): Promise<UrlPaginatedResponse>;
 
   /**
    *
-   * @summary Get a short URL by id
+   * @summary Get a URL by id
    * @param {string} id
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -110,7 +119,7 @@ export interface UrlsApiInterface {
   ): Promise<runtime.ApiResponse<UrlResponse>>;
 
   /**
-   * Get a short URL by id
+   * Get a URL by id
    */
   getById(
     requestParameters: GetByIdRequest,
@@ -119,7 +128,7 @@ export interface UrlsApiInterface {
 
   /**
    *
-   * @summary Create a new short URL
+   * @summary Create a new URL
    * @param {ShortenUrlRequest} shortenUrlRequest Request body to shorten a URL
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -131,7 +140,7 @@ export interface UrlsApiInterface {
   ): Promise<runtime.ApiResponse<UrlResponse>>;
 
   /**
-   * Create a new short URL
+   * Create a new URL
    */
   shorten(
     requestParameters: ShortenRequest,
@@ -140,7 +149,7 @@ export interface UrlsApiInterface {
 
   /**
    *
-   * @summary Update a short URL
+   * @summary Update a URL
    * @param {string} id
    * @param {UpdateUrlRequest} updateUrlRequest Request body to update a URL
    * @param {*} [options] Override http request option.
@@ -153,7 +162,7 @@ export interface UrlsApiInterface {
   ): Promise<runtime.ApiResponse<UrlResponse>>;
 
   /**
-   * Update a short URL
+   * Update a URL
    */
   update(
     requestParameters: UpdateRequest,
@@ -166,7 +175,7 @@ export interface UrlsApiInterface {
  */
 export class UrlsApi extends runtime.BaseAPI implements UrlsApiInterface {
   /**
-   * Delete a short URL
+   * Delete a URL
    */
   async _deleteRaw(
     requestParameters: DeleteRequest,
@@ -212,7 +221,7 @@ export class UrlsApi extends runtime.BaseAPI implements UrlsApiInterface {
   }
 
   /**
-   * Delete a short URL
+   * Delete a URL
    */
   async _delete(
     requestParameters: DeleteRequest,
@@ -222,12 +231,21 @@ export class UrlsApi extends runtime.BaseAPI implements UrlsApiInterface {
   }
 
   /**
-   * Get all short URLs for a user
+   * Get all URLs paginated
    */
   async getAllRaw(
+    requestParameters: GetAllRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<AllUrlsResponse>> {
+  ): Promise<runtime.ApiResponse<UrlPaginatedResponse>> {
     const queryParameters: any = {};
+
+    if (requestParameters["page"] != null) {
+      queryParameters["page"] = requestParameters["page"];
+    }
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
+    }
 
     const headerParameters: runtime.HTTPHeaders = {};
 
@@ -253,22 +271,23 @@ export class UrlsApi extends runtime.BaseAPI implements UrlsApiInterface {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      AllUrlsResponseFromJSON(jsonValue),
+      UrlPaginatedResponseFromJSON(jsonValue),
     );
   }
 
   /**
-   * Get all short URLs for a user
+   * Get all URLs paginated
    */
   async getAll(
+    requestParameters: GetAllRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<AllUrlsResponse> {
-    const response = await this.getAllRaw(initOverrides);
+  ): Promise<UrlPaginatedResponse> {
+    const response = await this.getAllRaw(requestParameters, initOverrides);
     return await response.value();
   }
 
   /**
-   * Get a short URL by id
+   * Get a URL by id
    */
   async getByIdRaw(
     requestParameters: GetByIdRequest,
@@ -316,7 +335,7 @@ export class UrlsApi extends runtime.BaseAPI implements UrlsApiInterface {
   }
 
   /**
-   * Get a short URL by id
+   * Get a URL by id
    */
   async getById(
     requestParameters: GetByIdRequest,
@@ -327,7 +346,7 @@ export class UrlsApi extends runtime.BaseAPI implements UrlsApiInterface {
   }
 
   /**
-   * Create a new short URL
+   * Create a new URL
    */
   async shortenRaw(
     requestParameters: ShortenRequest,
@@ -374,7 +393,7 @@ export class UrlsApi extends runtime.BaseAPI implements UrlsApiInterface {
   }
 
   /**
-   * Create a new short URL
+   * Create a new URL
    */
   async shorten(
     requestParameters: ShortenRequest,
@@ -385,7 +404,7 @@ export class UrlsApi extends runtime.BaseAPI implements UrlsApiInterface {
   }
 
   /**
-   * Update a short URL
+   * Update a URL
    */
   async updateRaw(
     requestParameters: UpdateRequest,
@@ -443,7 +462,7 @@ export class UrlsApi extends runtime.BaseAPI implements UrlsApiInterface {
   }
 
   /**
-   * Update a short URL
+   * Update a URL
    */
   async update(
     requestParameters: UpdateRequest,

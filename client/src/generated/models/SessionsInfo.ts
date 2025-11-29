@@ -65,6 +65,30 @@ export interface SessionsInfo {
   isRevoked?: boolean;
   /**
    *
+   * @type {boolean}
+   * @memberof SessionsInfo
+   */
+  isCurrent?: boolean;
+  /**
+   *
+   * @type {string}
+   * @memberof SessionsInfo
+   */
+  deviceType: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SessionsInfo
+   */
+  os: string;
+  /**
+   *
+   * @type {string}
+   * @memberof SessionsInfo
+   */
+  browser: string;
+  /**
+   *
    * @type {Date}
    * @memberof SessionsInfo
    */
@@ -93,6 +117,10 @@ export function instanceOfSessionsInfo(value: object): value is SessionsInfo {
   if (!("userAgent" in value) || value["userAgent"] === undefined) return false;
   if (!("ipLocation" in value) || value["ipLocation"] === undefined)
     return false;
+  if (!("deviceType" in value) || value["deviceType"] === undefined)
+    return false;
+  if (!("os" in value) || value["os"] === undefined) return false;
+  if (!("browser" in value) || value["browser"] === undefined) return false;
   if (!("revokedAt" in value) || value["revokedAt"] === undefined) return false;
   if (!("expiresAt" in value) || value["expiresAt"] === undefined) return false;
   if (!("user" in value) || value["user"] === undefined) return false;
@@ -117,6 +145,10 @@ export function SessionsInfoFromJSONTyped(
     userAgent: json["user_agent"],
     ipLocation: json["ip_location"],
     isRevoked: json["is_revoked"] == null ? undefined : json["is_revoked"],
+    isCurrent: json["is_current"] == null ? undefined : json["is_current"],
+    deviceType: json["device_type"],
+    os: json["os"],
+    browser: json["browser"],
     revokedAt: new Date(json["revoked_at"]),
     expiresAt: new Date(json["expires_at"]),
     user: SessionsInfoUserFromJSON(json["user"]),
@@ -142,6 +174,10 @@ export function SessionsInfoToJSONTyped(
     user_agent: value["userAgent"],
     ip_location: value["ipLocation"],
     is_revoked: value["isRevoked"],
+    is_current: value["isCurrent"],
+    device_type: value["deviceType"],
+    os: value["os"],
+    browser: value["browser"],
     revoked_at: value["revokedAt"].toISOString(),
     expires_at: value["expiresAt"].toISOString(),
     user: SessionsInfoUserToJSON(value["user"]),

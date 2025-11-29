@@ -5,6 +5,7 @@ export * from "./AnalyticsApi";
 export * from "./AuthenticationApi";
 export * from "./BillingAddressApi";
 export * from "./HealthApi";
+export * from "./OAuthApi";
 export * from "./PaymentMethodsApi";
 export * from "./PublicPaymentMethodsApi";
 export * from "./PublicSubscriptionsPlansApi";

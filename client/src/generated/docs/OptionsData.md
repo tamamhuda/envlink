@@ -6,8 +6,6 @@
 | ----------------- | ------- |
 | `strategy`        | string  |
 | `upgradable`      | boolean |
-| `currentPlan`     | string  |
-| `newPlan`         | string  |
 | `amount`          | number  |
 | `discount`        | number  |
 | `remainingDays`   | number  |
@@ -23,8 +21,6 @@ import type { OptionsData } from "";
 const example = {
   strategy: null,
   upgradable: null,
-  currentPlan: null,
-  newPlan: null,
   amount: null,
   discount: null,
   remainingDays: null,

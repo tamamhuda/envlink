@@ -114,7 +114,7 @@ export interface PaymentMethodsApiInterface {
 
   /**
    *
-   * @summary Get payment method by id
+   * @summary Get payment method by id or external id
    * @param {string} id
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -126,7 +126,7 @@ export interface PaymentMethodsApiInterface {
   ): Promise<runtime.ApiResponse<PaymentMethodResponse>>;
 
   /**
-   * Get payment method by id
+   * Get payment method by id or external id
    */
   getById(
     requestParameters: GetByIdRequest,
@@ -312,7 +312,7 @@ export class PaymentMethodsApi
   }
 
   /**
-   * Get payment method by id
+   * Get payment method by id or external id
    */
   async getByIdRaw(
     requestParameters: GetByIdRequest,
@@ -360,7 +360,7 @@ export class PaymentMethodsApi
   }
 
   /**
-   * Get payment method by id
+   * Get payment method by id or external id
    */
   async getById(
     requestParameters: GetByIdRequest,

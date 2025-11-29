@@ -4,7 +4,7 @@
 
 | Name          | Type   |
 | ------------- | ------ |
-| `country`     | string |
+| `countryCode` | string |
 | `totalVisits` | number |
 
 ## Example
@@ -14,7 +14,7 @@ import type { TopCountriesData } from "";
 
 // TODO: Update the object below with actual values
 const example = {
-  country: null,
+  countryCode: null,
   totalVisits: null,
 } satisfies TopCountriesData;
 

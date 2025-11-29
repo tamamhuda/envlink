@@ -20,6 +20,7 @@ import type {
   UrlAnalyticStatResponse,
   UrlAnalyticTimelineResponse,
   UrlAnalyticsOverviewResponse,
+  UrlAnalyticsSegmentsResponse,
 } from "../models/index";
 import {
   ErrorResponseFromJSON,
@@ -34,22 +35,24 @@ import {
   UrlAnalyticTimelineResponseToJSON,
   UrlAnalyticsOverviewResponseFromJSON,
   UrlAnalyticsOverviewResponseToJSON,
+  UrlAnalyticsSegmentsResponseFromJSON,
+  UrlAnalyticsSegmentsResponseToJSON,
 } from "../models/index";
 
 export interface GetAllUrlLogsRequest {
-  limit?: number;
   page?: number;
+  limit?: number;
 }
 
 export interface GetAllUrlStatsRequest {
-  limit?: number;
   page?: number;
+  limit?: number;
 }
 
 export interface GetUrlLogsByIdRequest {
   urlId: string;
-  limit?: number;
   page?: number;
+  limit?: number;
 }
 
 export interface GetUrlStatsByIdRequest {
@@ -70,8 +73,8 @@ export interface AnalyticsApiInterface {
   /**
    *
    * @summary Get all analytics logs of urls
-   * @param {number} [limit] Page size
    * @param {number} [page] Page number
+   * @param {number} [limit] Page size
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof AnalyticsApiInterface
@@ -92,8 +95,8 @@ export interface AnalyticsApiInterface {
   /**
    *
    * @summary Get all analytics stats of urls
-   * @param {number} [limit] Page size
    * @param {number} [page] Page number
+   * @param {number} [limit] Page size
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof AnalyticsApiInterface
@@ -133,8 +136,8 @@ export interface AnalyticsApiInterface {
    *
    * @summary Get all analytics logs of url by id
    * @param {string} urlId
-   * @param {number} [limit] Page size
    * @param {number} [page] Page number
+   * @param {number} [limit] Page size
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof AnalyticsApiInterface
@@ -196,7 +199,7 @@ export interface AnalyticsApiInterface {
 
   /**
    *
-   * @summary Overview of url analytics
+   * @summary Get Overview of url analytics
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof AnalyticsApiInterface
@@ -206,11 +209,29 @@ export interface AnalyticsApiInterface {
   ): Promise<runtime.ApiResponse<UrlAnalyticsOverviewResponse>>;
 
   /**
-   * Overview of url analytics
+   * Get Overview of url analytics
    */
   getUrlsOverview(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<UrlAnalyticsOverviewResponse>;
+
+  /**
+   *
+   * @summary Get Segments of url analytics
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof AnalyticsApiInterface
+   */
+  getUrlsSegmentsRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UrlAnalyticsSegmentsResponse>>;
+
+  /**
+   * Get Segments of url analytics
+   */
+  getUrlsSegments(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UrlAnalyticsSegmentsResponse>;
 }
 
 /**
@@ -229,12 +250,12 @@ export class AnalyticsApi
   ): Promise<runtime.ApiResponse<UrlAnalyticLogPaginatedResponse>> {
     const queryParameters: any = {};
 
-    if (requestParameters["limit"] != null) {
-      queryParameters["limit"] = requestParameters["limit"];
-    }
-
     if (requestParameters["page"] != null) {
       queryParameters["page"] = requestParameters["page"];
+    }
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -279,12 +300,12 @@ export class AnalyticsApi
   ): Promise<runtime.ApiResponse<UrlAnalyticStatPaginatedResponse>> {
     const queryParameters: any = {};
 
-    if (requestParameters["limit"] != null) {
-      queryParameters["limit"] = requestParameters["limit"];
-    }
-
     if (requestParameters["page"] != null) {
       queryParameters["page"] = requestParameters["page"];
+    }
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -373,12 +394,12 @@ export class AnalyticsApi
 
     const queryParameters: any = {};
 
-    if (requestParameters["limit"] != null) {
-      queryParameters["limit"] = requestParameters["limit"];
-    }
-
     if (requestParameters["page"] != null) {
       queryParameters["page"] = requestParameters["page"];
+    }
+
+    if (requestParameters["limit"] != null) {
+      queryParameters["limit"] = requestParameters["limit"];
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -525,7 +546,7 @@ export class AnalyticsApi
   }
 
   /**
-   * Overview of url analytics
+   * Get Overview of url analytics
    */
   async getUrlsOverviewRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
@@ -552,12 +573,49 @@ export class AnalyticsApi
   }
 
   /**
-   * Overview of url analytics
+   * Get Overview of url analytics
    */
   async getUrlsOverview(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<UrlAnalyticsOverviewResponse> {
     const response = await this.getUrlsOverviewRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   * Get Segments of url analytics
+   */
+  async getUrlsSegmentsRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<UrlAnalyticsSegmentsResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    let urlPath = `/api/v1/analytics/urls/segments`;
+
+    const response = await this.request(
+      {
+        path: urlPath,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      UrlAnalyticsSegmentsResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   * Get Segments of url analytics
+   */
+  async getUrlsSegments(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<UrlAnalyticsSegmentsResponse> {
+    const response = await this.getUrlsSegmentsRaw(initOverrides);
     return await response.value();
   }
 }

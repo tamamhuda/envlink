@@ -36,7 +36,7 @@ export interface CountryVisitsData {
    * @type {string}
    * @memberof CountryVisitsData
    */
-  country: string;
+  countryCode: string;
 }
 
 /**
@@ -45,7 +45,8 @@ export interface CountryVisitsData {
 export function instanceOfCountryVisitsData(
   value: object,
 ): value is CountryVisitsData {
-  if (!("country" in value) || value["country"] === undefined) return false;
+  if (!("countryCode" in value) || value["countryCode"] === undefined)
+    return false;
   return true;
 }
 
@@ -63,7 +64,7 @@ export function CountryVisitsDataFromJSONTyped(
   return {
     total: json["total"] == null ? undefined : json["total"],
     unique: json["unique"] == null ? undefined : json["unique"],
-    country: json["country"],
+    countryCode: json["country_code"],
   };
 }
 
@@ -82,6 +83,6 @@ export function CountryVisitsDataToJSONTyped(
   return {
     total: value["total"],
     unique: value["unique"],
-    country: value["country"],
+    country_code: value["countryCode"],
   };
 }

@@ -10,6 +10,10 @@
 | `userAgent`  | string                                  |
 | `ipLocation` | string                                  |
 | `isRevoked`  | boolean                                 |
+| `isCurrent`  | boolean                                 |
+| `deviceType` | string                                  |
+| `os`         | string                                  |
+| `browser`    | string                                  |
 | `revokedAt`  | Date                                    |
 | `expiresAt`  | Date                                    |
 | `user`       | [SessionsInfoUser](SessionsInfoUser.md) |
@@ -27,6 +31,10 @@ const example = {
   userAgent: null,
   ipLocation: null,
   isRevoked: null,
+  isCurrent: null,
+  deviceType: null,
+  os: null,
+  browser: null,
   revokedAt: null,
   expiresAt: null,
   user: null,

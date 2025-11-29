@@ -2,15 +2,17 @@
 
 ## Properties
 
-| Name          | Type                                                                        |
-| ------------- | --------------------------------------------------------------------------- |
-| `plan`        | string                                                                      |
-| `strategy`    | string                                                                      |
-| `amount`      | number                                                                      |
-| `discount`    | number                                                                      |
-| `schedule`    | [UpgradeSubscriptionRequestSchedule](UpgradeSubscriptionRequestSchedule.md) |
-| `description` | string                                                                      |
-| `metadata`    | { [key: string]: any; }                                                     |
+| Name               | Type                                                                        |
+| ------------------ | --------------------------------------------------------------------------- |
+| `plan`             | string                                                                      |
+| `strategy`         | string                                                                      |
+| `amount`           | number                                                                      |
+| `discount`         | number                                                                      |
+| `schedule`         | [UpgradeSubscriptionRequestSchedule](UpgradeSubscriptionRequestSchedule.md) |
+| `description`      | string                                                                      |
+| `successReturnUrl` | string                                                                      |
+| `failureReturnUrl` | string                                                                      |
+| `metadata`         | { [key: string]: any; }                                                     |
 
 ## Example
 
@@ -25,6 +27,8 @@ const example = {
   discount: null,
   schedule: null,
   description: null,
+  successReturnUrl: null,
+  failureReturnUrl: null,
   metadata: null,
 } satisfies UpgradeSubscriptionRequest;
 

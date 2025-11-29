@@ -24,7 +24,7 @@ export interface TopCountriesData {
    * @type {string}
    * @memberof TopCountriesData
    */
-  country: string;
+  countryCode: string;
   /**
    *
    * @type {number}
@@ -39,7 +39,8 @@ export interface TopCountriesData {
 export function instanceOfTopCountriesData(
   value: object,
 ): value is TopCountriesData {
-  if (!("country" in value) || value["country"] === undefined) return false;
+  if (!("countryCode" in value) || value["countryCode"] === undefined)
+    return false;
   if (!("totalVisits" in value) || value["totalVisits"] === undefined)
     return false;
   return true;
@@ -57,7 +58,7 @@ export function TopCountriesDataFromJSONTyped(
     return json;
   }
   return {
-    country: json["country"],
+    countryCode: json["country_code"],
     totalVisits: json["total_visits"],
   };
 }
@@ -75,7 +76,7 @@ export function TopCountriesDataToJSONTyped(
   }
 
   return {
-    country: value["country"],
+    country_code: value["countryCode"],
     total_visits: value["totalVisits"],
   };
 }

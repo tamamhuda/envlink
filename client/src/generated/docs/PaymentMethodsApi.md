@@ -2,14 +2,14 @@
 
 All URIs are relative to *https://local-nest.utadev.app*
 
-| Method                                                    | HTTP request                                     | Description                   |
-| --------------------------------------------------------- | ------------------------------------------------ | ----------------------------- |
-| [**create**](PaymentMethodsApi.md#create)                 | **POST** /api/v1/payment-methods                 | Create payment method         |
-| [**getAll**](PaymentMethodsApi.md#getall)                 | **GET** /api/v1/payment-methods                  | Get all payment methods       |
-| [**getById**](PaymentMethodsApi.md#getbyid)               | **GET** /api/v1/payment-methods/{id}             | Get payment method by id      |
-| [**requestActions**](PaymentMethodsApi.md#requestactions) | **GET** /api/v1/payment-methods/requests-actions | Get requested payment methods |
-| [**sort**](PaymentMethodsApi.md#sort)                     | **PATCH** /api/v1/payment-methods/sort           | Sort payment methods          |
-| [**validate**](PaymentMethodsApi.md#validate)             | **POST** /api/v1/payment-methods/validate        | Validate payment method       |
+| Method                                                    | HTTP request                                     | Description                             |
+| --------------------------------------------------------- | ------------------------------------------------ | --------------------------------------- |
+| [**create**](PaymentMethodsApi.md#create)                 | **POST** /api/v1/payment-methods                 | Create payment method                   |
+| [**getAll**](PaymentMethodsApi.md#getall)                 | **GET** /api/v1/payment-methods                  | Get all payment methods                 |
+| [**getById**](PaymentMethodsApi.md#getbyid)               | **GET** /api/v1/payment-methods/{id}             | Get payment method by id or external id |
+| [**requestActions**](PaymentMethodsApi.md#requestactions) | **GET** /api/v1/payment-methods/requests-actions | Get requested payment methods           |
+| [**sort**](PaymentMethodsApi.md#sort)                     | **PATCH** /api/v1/payment-methods/sort           | Sort payment methods                    |
+| [**validate**](PaymentMethodsApi.md#validate)             | **POST** /api/v1/payment-methods/validate        | Validate payment method                 |
 
 ## create
 
@@ -141,7 +141,7 @@ This endpoint does not need any parameter.
 
 > PaymentMethodResponse getById(id)
 
-Get payment method by id
+Get payment method by id or external id
 
 ### Example
 

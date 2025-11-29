@@ -75,7 +75,7 @@ paths:
       summary: Change password
       tags:
         - Account
-  /api/v1/session/{id}:
+  /api/v1/sessions/{id}:
     get:
       operationId: GetById
       parameters:
@@ -102,7 +102,7 @@ paths:
       summary: Get session by id
       tags:
         - Sessions
-  /api/v1/session:
+  /api/v1/sessions:
     get:
       operationId: GetAll
       parameters:
@@ -129,7 +129,7 @@ paths:
       summary: Get all user sessions
       tags:
         - Sessions
-  /api/v1/session/revoke/{id}:
+  /api/v1/sessions/revoke/{id}:
     post:
       operationId: RevokeById
       parameters:
@@ -152,10 +152,17 @@ paths:
       summary: Revoke a user session
       tags:
         - Sessions
-  /api/v1/session/revoke:
+  /api/v1/sessions/revoke:
     post:
       operationId: RevokeAll
-      parameters: []
+      parameters:
+        - name: keepCurrent
+          required: false
+          in: query
+          description: Keep current session
+          schema:
+            default: false
+            type: boolean
       responses:
         "204":
           description: No content
@@ -496,7 +503,7 @@ paths:
               $ref: "#/components/schemas/ShortenUrlRequest"
       responses:
         "201":
-          description: Created a new short URL
+          description: Created a new URL
           content:
             application/json:
               schema:
@@ -509,19 +516,35 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
         - jwt-access: []
-      summary: Create a new short URL
+      summary: Create a new URL
       tags:
         - Urls
     get:
       operationId: GetAll
-      parameters: []
+      parameters:
+        - name: page
+          required: false
+          in: query
+          description: Page number
+          schema:
+            default: 1
+            example: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Page size
+          schema:
+            default: 1
+            example: 10
+            type: number
       responses:
         "200":
-          description: Get all short URLs for a user successfully
+          description: Get all URLs paginated for a user successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AllUrlsResponse"
+                $ref: "#/components/schemas/UrlPaginatedResponse"
         4XX:
           description: API Error Response
           content:
@@ -530,7 +553,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
         - jwt-access: []
-      summary: Get all short URLs for a user
+      summary: Get all URLs paginated
       tags:
         - Urls
   /api/v1/urls/{id}:
@@ -544,7 +567,7 @@ paths:
             type: string
       responses:
         "200":
-          description: Get a short URL by id successfully
+          description: Get a URL by id successfully
           content:
             application/json:
               schema:
@@ -557,7 +580,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
         - jwt-access: []
-      summary: Get a short URL by id
+      summary: Get a URL by id
       tags:
         - Urls
     put:
@@ -577,7 +600,7 @@ paths:
               $ref: "#/components/schemas/UpdateUrlRequest"
       responses:
         "200":
-          description: Update a short URL
+          description: Update a URL
           content:
             application/json:
               schema:
@@ -590,7 +613,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
         - jwt-access: []
-      summary: Update a short URL
+      summary: Update a URL
       tags:
         - Urls
     delete:
@@ -603,7 +626,7 @@ paths:
             type: string
       responses:
         "204":
-          description: Delete a short URL successfully
+          description: Delete a URL successfully
         4XX:
           description: API Error Response
           content:
@@ -612,7 +635,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
         - jwt-access: []
-      summary: Delete a short URL
+      summary: Delete a URL
       tags:
         - Urls
   /api/v1/public/urls/shorten:
@@ -1093,7 +1116,7 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
         - jwt-access: []
-      summary: Get payment method by id
+      summary: Get payment method by id or external id
       tags:
         - Payment Methods
   /api/v1/payment-methods:
@@ -1385,26 +1408,48 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-      summary: Overview of url analytics
+      summary: Get Overview of url analytics
+      tags:
+        - Analytics
+  /api/v1/analytics/urls/segments:
+    get:
+      operationId: getUrlsSegments
+      parameters: []
+      responses:
+        "200":
+          description: Get url analytics segments successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlAnalyticsSegmentsResponse"
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      summary: Get Segments of url analytics
       tags:
         - Analytics
   /api/v1/analytics/urls/stats:
     get:
       operationId: getAllUrlStats
       parameters:
-        - name: limit
-          required: false
-          in: query
-          description: Page size
-          schema:
-            default: 10
-            type: number
         - name: page
           required: false
           in: query
           description: Page number
           schema:
             default: 1
+            example: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Page size
+          schema:
+            default: 1
+            example: 10
             type: number
       responses:
         "200":
@@ -1446,19 +1491,21 @@ paths:
     get:
       operationId: getAllUrlLogs
       parameters:
-        - name: limit
-          required: false
-          in: query
-          description: Page size
-          schema:
-            default: 10
-            type: number
         - name: page
           required: false
           in: query
           description: Page number
           schema:
             default: 1
+            example: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Page size
+          schema:
+            default: 1
+            example: 10
             type: number
       responses:
         "200":
@@ -1535,19 +1582,21 @@ paths:
           in: path
           schema:
             type: string
-        - name: limit
-          required: false
-          in: query
-          description: Page size
-          schema:
-            default: 10
-            type: number
         - name: page
           required: false
           in: query
           description: Page number
           schema:
             default: 1
+            example: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Page size
+          schema:
+            default: 1
+            example: 10
             type: number
       responses:
         "200":
@@ -1675,6 +1724,123 @@ paths:
       summary: Update a billing address
       tags:
         - Billing Address
+  /api/v1/oauth/google/login:
+    get:
+      operationId: signInWithGoogle
+      parameters:
+        - name: direct
+          required: false
+          in: query
+          description: Whether to redirect directly to oauth google login page
+          schema:
+            example: true
+            type: boolean
+        - name: redirect
+          required: false
+          in: query
+          description: The URL to redirect to after successful authentication
+          schema:
+            example: https://example.com/callback
+            type: string
+      responses:
+        "200":
+          description: The URL to redirect to Google OAuth login page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GoogleUrlResponse"
+        "308":
+          description: Redirects to the Google OAuth login page
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      summary: Redirects to Google OAuth login page
+      tags:
+        - OAuth
+  /api/v1/oauth/google/callback:
+    get:
+      operationId: callbackWithGoogle
+      parameters: []
+      responses:
+        "200":
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedResponse"
+        "308":
+          description: Redirects to the provided redirect URL with the authentication code
+          content:
+            application/json:
+              example: https://example.com/callback?code=1234567890
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      summary: Callback from Google OAuth login page
+      tags:
+        - OAuth
+  /api/v1/oauth/google/credential:
+    post:
+      operationId: googleCredential
+      parameters: []
+      requestBody:
+        required: true
+        description: The request body for verifying a Google credential
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleCredentialRequest"
+      responses:
+        "200":
+          description: Authenticated with google credential successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedResponse"
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      summary: Verifies a Google credential
+      tags:
+        - OAuth
+  /api/v1/oauth/exchange-code:
+    post:
+      operationId: exchangeCode
+      parameters: []
+      requestBody:
+        required: true
+        description: The request body for exchanging an OAuth code for tokens
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExchangeCodeRequest"
+      responses:
+        "200":
+          description: Successful exchange of OAuth code for authenticated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthenticatedResponse"
+        "308":
+          description: Redirects to the provided redirect URL
+        4XX:
+          description: API Error Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      summary: Exchanges an OAuth code for tokens
+      tags:
+        - OAuth
 info:
   title: envlink
   description: A fast and reliable URL shortening service built with NestJS,
@@ -1758,7 +1924,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:15.558Z
+          default: 2025-11-29T07:24:53.512Z
       required:
         - success
         - path
@@ -1778,7 +1944,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:15.696Z
+          default: 2025-11-29T07:24:53.555Z
       required:
         - success
         - path
@@ -1800,7 +1966,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:15.696Z
+          default: 2025-11-29T07:24:53.555Z
       required:
         - success
         - path
@@ -1870,7 +2036,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:15.944Z
+          default: 2025-11-29T07:24:53.588Z
       required:
         - success
         - path
@@ -1903,7 +2069,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:15.944Z
+          default: 2025-11-29T07:24:53.588Z
       required:
         - success
         - path
@@ -1947,12 +2113,12 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.063Z
+          default: 2025-11-29T07:24:53.683Z
       required:
         - success
         - path
         - data
-    AllUrlsResponse:
+    UrlPaginatedResponse:
       type: object
       properties:
         success:
@@ -1963,13 +2129,11 @@ components:
         path:
           type: string
         data:
-          type: array
-          items:
-            $ref: "#/components/schemas/Url"
+          $ref: "#/components/schemas/UrlPaginatedData"
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.063Z
+          default: 2025-11-29T07:24:53.683Z
       required:
         - success
         - path
@@ -2025,7 +2189,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.063Z
+          default: 2025-11-29T07:24:53.683Z
       required:
         - success
         - path
@@ -2053,7 +2217,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.554Z
+          default: 2025-11-29T07:24:53.886Z
       required:
         - success
         - path
@@ -2075,7 +2239,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.554Z
+          default: 2025-11-29T07:24:53.886Z
       required:
         - success
         - path
@@ -2117,6 +2281,12 @@ components:
         description:
           type: string
           minLength: 1
+        successReturnUrl:
+          type: string
+          format: uri
+        failureReturnUrl:
+          type: string
+          format: uri
         metadata:
           type: object
           additionalProperties: {}
@@ -2142,7 +2312,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.556Z
+          default: 2025-11-29T07:24:53.887Z
       required:
         - success
         - path
@@ -2164,7 +2334,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.554Z
+          default: 2025-11-29T07:24:53.886Z
       required:
         - success
         - path
@@ -2184,7 +2354,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.554Z
+          default: 2025-11-29T07:24:53.886Z
       required:
         - success
         - path
@@ -2206,7 +2376,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.561Z
+          default: 2025-11-29T07:24:53.889Z
       required:
         - success
         - path
@@ -2228,7 +2398,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.561Z
+          default: 2025-11-29T07:24:53.889Z
       required:
         - success
         - path
@@ -2254,7 +2424,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:15.555Z
+          default: 2025-11-29T07:24:53.511Z
       required:
         - success
         - path
@@ -2276,7 +2446,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.568Z
+          default: 2025-11-29T07:24:53.891Z
       required:
         - success
         - path
@@ -2296,7 +2466,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.579Z
+          default: 2025-11-29T07:24:53.893Z
       required:
         - success
         - path
@@ -2318,7 +2488,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.579Z
+          default: 2025-11-29T07:24:53.893Z
       required:
         - success
         - path
@@ -2396,7 +2566,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.568Z
+          default: 2025-11-29T07:24:53.891Z
       required:
         - success
         - path
@@ -2418,7 +2588,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.586Z
+          default: 2025-11-29T07:24:53.896Z
       required:
         - success
         - path
@@ -2438,7 +2608,27 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.821Z
+          default: 2025-11-29T07:24:53.900Z
+      required:
+        - success
+        - path
+        - data
+    UrlAnalyticsSegmentsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          type: number
+          default: 200
+        path:
+          type: string
+        data:
+          $ref: "#/components/schemas/UrlAnalyticsSegments"
+        timestamp:
+          type: string
+          format: date-time
+          default: 2025-11-29T07:24:53.900Z
       required:
         - success
         - path
@@ -2458,7 +2648,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.821Z
+          default: 2025-11-29T07:24:53.900Z
       required:
         - success
         - path
@@ -2480,7 +2670,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.823Z
+          default: 2025-11-29T07:24:53.900Z
       required:
         - success
         - path
@@ -2500,7 +2690,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.819Z
+          default: 2025-11-29T07:24:53.899Z
       required:
         - success
         - path
@@ -2520,7 +2710,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.821Z
+          default: 2025-11-29T07:24:53.900Z
       required:
         - success
         - path
@@ -2542,7 +2732,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.827Z
+          default: 2025-11-29T07:24:53.902Z
       required:
         - success
         - path
@@ -2562,7 +2752,7 @@ components:
         timestamp:
           type: string
           format: date-time
-          default: 2025-11-20T08:07:16.827Z
+          default: 2025-11-29T07:24:53.902Z
       required:
         - success
         - path
@@ -2672,6 +2862,40 @@ components:
         - state
         - country
         - zip
+    GoogleUrlResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        status:
+          type: number
+          default: 200
+        path:
+          type: string
+        data:
+          $ref: "#/components/schemas/GoogleUrl"
+        timestamp:
+          type: string
+          format: date-time
+          default: 2025-11-29T07:24:53.904Z
+      required:
+        - success
+        - path
+        - data
+    GoogleCredentialRequest:
+      type: object
+      properties:
+        credential:
+          type: string
+      required:
+        - credential
+    ExchangeCodeRequest:
+      type: object
+      properties:
+        code:
+          type: string
+      required:
+        - code
     PaginatedMeta:
       type: object
       properties:
@@ -2761,6 +2985,7 @@ components:
         last_login_at:
           type: string
           format: date-time
+          nullable: true
       required:
         - id
         - created_at
@@ -2809,6 +3034,21 @@ components:
         is_revoked:
           type: boolean
           default: false
+        is_current:
+          type: boolean
+          default: false
+        device_type:
+          type: string
+          maxLength: 32
+          nullable: true
+        os:
+          type: string
+          maxLength: 64
+          nullable: true
+        browser:
+          type: string
+          maxLength: 64
+          nullable: true
         revoked_at:
           type: string
           format: date-time
@@ -2825,6 +3065,9 @@ components:
         - updated_at
         - user_agent
         - ip_location
+        - device_type
+        - os
+        - browser
         - revoked_at
         - expires_at
         - user
@@ -2874,6 +3117,7 @@ components:
         last_login_at:
           type: string
           format: date-time
+          nullable: true
       required:
         - id
         - created_at
@@ -2907,6 +3151,21 @@ components:
         is_revoked:
           type: boolean
           default: false
+        is_current:
+          type: boolean
+          default: false
+        device_type:
+          type: string
+          maxLength: 32
+          nullable: true
+        os:
+          type: string
+          maxLength: 64
+          nullable: true
+        browser:
+          type: string
+          maxLength: 64
+          nullable: true
         revoked_at:
           type: string
           format: date-time
@@ -2923,6 +3182,9 @@ components:
         - updated_at
         - user_agent
         - ip_location
+        - device_type
+        - os
+        - browser
         - revoked_at
         - expires_at
         - user
@@ -2972,6 +3234,7 @@ components:
         last_login_at:
           type: string
           format: date-time
+          nullable: true
       required:
         - id
         - created_at
@@ -3047,6 +3310,7 @@ components:
         last_login_at:
           type: string
           format: date-time
+          nullable: true
       required:
         - id
         - created_at
@@ -3136,6 +3400,21 @@ components:
           type: string
           maxLength: 255
       nullable: true
+    UrlPaginatedData:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Url"
+        meta:
+          $ref: "#/components/schemas/PaginatedMeta"
+        links:
+          $ref: "#/components/schemas/PaginatedLinks"
+      required:
+        - data
+        - meta
+        - links
     PublicUrl:
       type: object
       properties:
@@ -3319,6 +3598,12 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/FeaturesData"
+        cta:
+          type: string
+          nullable: true
+        popular:
+          type: boolean
+          default: false
       required:
         - name
         - limit
@@ -3327,6 +3612,7 @@ components:
         - description
         - price
         - features
+        - cta
     SubscriptionInfoSchedule:
       type: object
       properties:
@@ -3405,8 +3691,26 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/FeaturesData"
+        cta:
+          type: string
+          nullable: true
+        popular:
+          type: boolean
+          default: false
         upgradable:
           type: boolean
+        current_plan:
+          type: string
+          enum:
+            - Free
+            - Pro
+            - Starter
+            - Enterprise
+          x-enumNames:
+            - FREE
+            - PRO
+            - STARTER
+            - ENTERPRISE
         options:
           type: array
           items:
@@ -3422,7 +3726,9 @@ components:
         - description
         - price
         - features
+        - cta
         - upgradable
+        - current_plan
         - options
     Plan:
       type: object
@@ -3464,6 +3770,12 @@ components:
           minItems: 1
           items:
             $ref: "#/components/schemas/FeaturesData"
+        cta:
+          type: string
+          nullable: true
+        popular:
+          type: boolean
+          default: false
       required:
         - name
         - limit
@@ -3472,6 +3784,7 @@ components:
         - description
         - price
         - features
+        - cta
     SubscriptionCycle:
       type: object
       properties:
@@ -3894,6 +4207,93 @@ components:
             $ref: "#/components/schemas/TopUrlsData"
           default: []
       required: []
+    UrlAnalyticsSegments:
+      type: object
+      properties:
+        device_visits:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              total:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              unique:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+          nullable: true
+        os_visits:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              total:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              unique:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+          nullable: true
+        browser_visits:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              total:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              unique:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+          nullable: true
+          default: {}
+        country_visits:
+          type: array
+          items:
+            $ref: "#/components/schemas/CountryVisitsData"
+          nullable: true
+          default: []
+        referrer_visits:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              total:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              unique:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+          default: {}
+        region_visits:
+          type: array
+          items:
+            $ref: "#/components/schemas/RegionVisitsData"
+          default: []
+        city_visits:
+          type: array
+          items:
+            $ref: "#/components/schemas/CityVisitsData"
+          default: []
+      required:
+        - device_visits
+        - os_visits
     UrlAnalyticStatPaginatedData:
       type: object
       properties:
@@ -3986,6 +4386,32 @@ components:
           items:
             $ref: "#/components/schemas/CountryVisitsData"
           nullable: true
+          default: []
+        referrer_visits:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              total:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              unique:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+          default: {}
+        region_visits:
+          type: array
+          items:
+            $ref: "#/components/schemas/RegionVisitsData"
+          default: []
+        city_visits:
+          type: array
+          items:
+            $ref: "#/components/schemas/CityVisitsData"
           default: []
       required:
         - url
@@ -4080,7 +4506,7 @@ components:
         city:
           type: string
           nullable: true
-        country:
+        country_code:
           type: string
           nullable: true
         device_type:
@@ -4118,7 +4544,7 @@ components:
         - referrer
         - region
         - city
-        - country
+        - country_code
         - device_type
         - os
         - language
@@ -4202,6 +4628,14 @@ components:
         - state
         - country
         - zip
+    GoogleUrl:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+      required:
+        - url
     ChannelIdsData:
       type: string
       properties: {}
@@ -4410,30 +4844,6 @@ components:
             - FINISH_CURRENT_CYCLE
         upgradable:
           type: boolean
-        current_plan:
-          type: string
-          enum:
-            - Free
-            - Pro
-            - Starter
-            - Enterprise
-          x-enumNames:
-            - FREE
-            - PRO
-            - STARTER
-            - ENTERPRISE
-        new_plan:
-          type: string
-          enum:
-            - Free
-            - Pro
-            - Starter
-            - Enterprise
-          x-enumNames:
-            - FREE
-            - PRO
-            - STARTER
-            - ENTERPRISE
         amount:
           type: number
           minimum: 0
@@ -4457,8 +4867,6 @@ components:
       required:
         - strategy
         - upgradable
-        - current_plan
-        - new_plan
         - amount
         - discount
         - remaining_days
@@ -4471,13 +4879,13 @@ components:
     TopCountriesData:
       type: object
       properties:
-        country:
+        country_code:
           type: string
           minLength: 1
         total_visits:
           type: number
       required:
-        - country
+        - country_code
         - total_visits
     TopUrlsData:
       type: object
@@ -4566,11 +4974,70 @@ components:
                 minimum: 0
                 exclusiveMinimum: false
                 default: 0
-              country:
+              country_code:
                 type: string
             required:
-              - country
+              - country_code
           nullable: true
+          default: []
+        referrer_visits:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              total:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              unique:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+          default: {}
+        region_visits:
+          type: array
+          items:
+            type: object
+            properties:
+              total:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              unique:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              region:
+                type: string
+            required:
+              - region
+          default: []
+        city_visits:
+          type: array
+          items:
+            type: object
+            properties:
+              total:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              unique:
+                type: number
+                minimum: 0
+                exclusiveMinimum: false
+                default: 0
+              city:
+                type: string
+              country_code:
+                type: string
+            required:
+              - city
+              - country_code
           default: []
       required:
         - url
@@ -4648,10 +5115,47 @@ components:
           minimum: 0
           exclusiveMinimum: false
           default: 0
-        country:
+        country_code:
           type: string
       required:
-        - country
+        - country_code
+    RegionVisitsData:
+      type: object
+      properties:
+        total:
+          type: number
+          minimum: 0
+          exclusiveMinimum: false
+          default: 0
+        unique:
+          type: number
+          minimum: 0
+          exclusiveMinimum: false
+          default: 0
+        region:
+          type: string
+      required:
+        - region
+    CityVisitsData:
+      type: object
+      properties:
+        total:
+          type: number
+          minimum: 0
+          exclusiveMinimum: false
+          default: 0
+        unique:
+          type: number
+          minimum: 0
+          exclusiveMinimum: false
+          default: 0
+        city:
+          type: string
+        country_code:
+          type: string
+      required:
+        - city
+        - country_code
     UrlAnalyticStatUrlMetadata:
       type: object
       properties:

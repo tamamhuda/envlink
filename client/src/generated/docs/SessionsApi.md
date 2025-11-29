@@ -2,12 +2,12 @@
 
 All URIs are relative to *https://local-nest.utadev.app*
 
-| Method                                      | HTTP request                         | Description              |
-| ------------------------------------------- | ------------------------------------ | ------------------------ |
-| [**getAll**](SessionsApi.md#getall)         | **GET** /api/v1/session              | Get all user sessions    |
-| [**getById**](SessionsApi.md#getbyid)       | **GET** /api/v1/session/{id}         | Get session by id        |
-| [**revokeAll**](SessionsApi.md#revokeall)   | **POST** /api/v1/session/revoke      | Revoke all user sessions |
-| [**revokeById**](SessionsApi.md#revokebyid) | **POST** /api/v1/session/revoke/{id} | Revoke a user session    |
+| Method                                      | HTTP request                          | Description              |
+| ------------------------------------------- | ------------------------------------- | ------------------------ |
+| [**getAll**](SessionsApi.md#getall)         | **GET** /api/v1/sessions              | Get all user sessions    |
+| [**getById**](SessionsApi.md#getbyid)       | **GET** /api/v1/sessions/{id}         | Get session by id        |
+| [**revokeAll**](SessionsApi.md#revokeall)   | **POST** /api/v1/sessions/revoke      | Revoke all user sessions |
+| [**revokeById**](SessionsApi.md#revokebyid) | **POST** /api/v1/sessions/revoke/{id} | Revoke a user session    |
 
 ## getAll
 
@@ -141,7 +141,7 @@ example().catch(console.error);
 
 ## revokeAll
 
-> revokeAll()
+> revokeAll(keepCurrent)
 
 Revoke all user sessions
 
@@ -159,8 +159,13 @@ async function example() {
   });
   const api = new SessionsApi(config);
 
+  const body = {
+    // boolean | Keep current session (optional)
+    keepCurrent: true,
+  } satisfies RevokeAllRequest;
+
   try {
-    const data = await api.revokeAll();
+    const data = await api.revokeAll(body);
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -173,7 +178,9 @@ example().catch(console.error);
 
 ### Parameters
 
-This endpoint does not need any parameter.
+| Name            | Type      | Description          | Notes                            |
+| --------------- | --------- | -------------------- | -------------------------------- |
+| **keepCurrent** | `boolean` | Keep current session | [Optional] [Defaults to `false`] |
 
 ### Return type
 

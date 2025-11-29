@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, computed } from "#imports";
+import { ref, computed, onMounted, onUnmounted } from "#imports";
 import { Calendar, MousePointerClick, Globe, BarChart2 } from "lucide-vue-next";
 import { VueDatePicker } from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import type { UrlAnalyticsOverview } from "~/client/src/generated/models/UrlAnalyticsOverview";
 import type { UrlAnalyticTimeline } from "~/client/src/generated/models/UrlAnalyticTimeline";
 import { getCountryData, type TCountryCode } from "countries-list";
+import ActionDropdown from "~/components/common/ActionDropdown.vue";
 
 const props = withDefaults(
   defineProps<{
@@ -24,12 +25,32 @@ const props = withDefaults(
 );
 
 const activeChartMode = ref<"area" | "bar">(props.defaultMode);
+const isDatePickerOpen = ref(false);
+const datePickerRef = ref<HTMLElement | null>(null);
 
 // Traffic Overview date range state
 const trafficDateRange = ref<Date[]>([
   new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
   new Date(), // today
 ]);
+
+// Handle click outside to close date picker
+const handleClickOutside = (event: MouseEvent) => {
+  if (
+    datePickerRef.value &&
+    !datePickerRef.value.contains(event.target as Node)
+  ) {
+    isDatePickerOpen.value = false;
+  }
+};
+
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 
 // Filtered timeline data based on date range
 const filteredTimelineData = computed(() => {
@@ -243,41 +264,44 @@ const chartSeries = computed(() => {
         <h2 class="text-xl font-semibold">Traffic Overview</h2>
 
         <div class="flex flex-col sm:flex-row gap-4 items-center">
-          <!-- Date Range Picker -->
-          <div class="w-full sm:w-auto min-w-[250px]">
-            <VueDatePicker
-              v-model="trafficDateRange"
-              range
-              multi-calendars
-              :enable-time-picker="false"
-              :is-24="true"
-              format="MMM dd, yyyy"
-              placeholder="Select date range"
-              :clearable="false"
-              auto-apply
-              :dark="isDarkMode"
-              menu-class-name="dp-custom-menu"
+          <!-- Date Range Picker with ActionDropdown -->
+          <div ref="datePickerRef">
+            <ActionDropdown
+              :is-open="isDatePickerOpen"
+              dropdown-class="w-auto"
+              @toggle="isDatePickerOpen = !isDatePickerOpen"
+              @close="isDatePickerOpen = false"
             >
               <template #trigger>
-                <div class="relative cursor-pointer">
-                  <Calendar
-                    class="absolute left-3 top-2.5 h-4 w-4 opacity-50 pointer-events-none z-20"
-                  />
-                  <input
-                    type="text"
-                    readonly
-                    :value="
+                <button
+                  type="button"
+                  class="w-full sm:w-auto min-w-[250px] flex items-center gap-2 px-4 py-2 text-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors"
+                >
+                  <Calendar class="h-4 w-4 opacity-50" />
+                  <span>
+                    {{
                       trafficDateRange &&
                       trafficDateRange[0] &&
                       trafficDateRange[1]
-                        ? `${trafficDateRange[0].toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - ${trafficDateRange[1].toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`
-                        : 'Select date range'
-                    "
-                    class="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                  />
-                </div>
+                        ? `${trafficDateRange[0].toLocaleDateString(undefined, { month: "short", day: "numeric" })} - ${trafficDateRange[1].toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+                        : "Select date range"
+                    }}
+                  </span>
+                </button>
               </template>
-            </VueDatePicker>
+
+              <div class="p-2">
+                <VueDatePicker
+                  v-model="trafficDateRange"
+                  range
+                  inline
+                  multi-calendars
+                  :enable-time-picker="false"
+                  :dark="isDarkMode"
+                  auto-apply
+                />
+              </div>
+            </ActionDropdown>
           </div>
 
           <!-- Chart Mode Switcher -->
@@ -387,61 +411,127 @@ const chartSeries = computed(() => {
 </template>
 
 <style scoped>
-/* Date Picker Custom Styles */
+@reference "../../assets/css/tailwind.css";
+
+/* Date Picker Inline Mode Styles */
 :deep(.dp__main) {
+  font-family: inherit;
+  background-color: var(--bg-color);
+  border-radius: 0.5rem;
+}
+
+:deep(.dp__calendar) {
   font-family: inherit;
 }
 
-:deep(.dp__input_wrap) {
-  width: 100%;
-}
-
-:deep(.dp__input) {
+/* Remove default borders and shadows */
+:deep(.dp__menu) {
   border: none !important;
-  padding: 0 !important;
+  box-shadow: none !important;
   background: transparent !important;
-  color: inherit !important;
 }
 
-:deep(.dp__clear_icon) {
-  right: 12px !important;
+/* Calendar styling */
+:deep(.dp__calendar_header) {
+  color: var(--text-color);
+  font-weight: 600;
 }
 
-:deep(.dp__input_icon) {
-  display: none;
+:deep(.dp__calendar_header_item) {
+  color: var(--text-color);
+  opacity: 0.7;
 }
 
-/* Custom menu style for datepicker */
-:deep(.dp-custom-menu) {
-  /* Custom variables for both light and dark mode */
-  --dp-background-color: var(--bg-color);
-  --dp-text-color: var(--text-color);
-  --dp-font-family: inherit;
-  --dp-border-radius: 0.5rem; /* rounded-lg */
-  --dp-primary-color: #2563eb; /* blue-600 */
-  --dp-primary-text-color: #ffffff;
-  --dp-border-color: transparent; /* The menu itself will have a border */
-
-  /* Custom border and shadow to match project style */
-  border: 2px solid var(--text-color);
-  box-shadow:
-    0 10px 15px -3px rgb(0 0 0 / 0.1),
-    0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+:deep(.dp__calendar_item) {
+  color: var(--text-color);
 }
 
-/* Light mode specific overrides */
-:deep(.dp-custom-menu:not(.dp--dark)) {
-  --dp-hover-color: #eff6ff; /* blue-50 */
-  --dp-hover-text-color: var(--text-color);
-  --dp-icon-color: var(--text-color);
-  --dp-secondary-color: #a6a6a6;
+/* Action row (bottom buttons) */
+:deep(.dp__action_row) {
+  display: none; /* Hide since we're using auto-apply */
 }
 
-/* Dark mode specific overrides */
-:deep(.dp-custom-menu.dp--dark) {
-  --dp-hover-color: #1e3a8a33; /* approx. blue-900 with 20% opacity */
-  --dp-hover-text-color: var(--text-color);
-  --dp-icon-color: var(--text-color);
-  --dp-secondary-color: #757575;
+/* Selected date styling - match box-shadow-card pattern */
+:deep(.dp__range_start),
+:deep(.dp__range_end),
+:deep(.dp__active_date) {
+  background: var(--primary-color) !important;
+  color: #fff !important;
+}
+
+/* Dark mode selected dates */
+:deep(.dp--dark .dp__range_start),
+:deep(.dp--dark .dp__range_end),
+:deep(.dp--dark .dp__active_date) {
+  background: var(--date-range-color) !important;
+  border: 1px solid var(--border-color) !important;
+  color: #fff !important;
+}
+
+/* Hover effect on selected dates - reduce shadow like card hover */
+:deep(.dp__range_start:hover),
+:deep(.dp__range_end:hover),
+:deep(.dp__active_date:hover) {
+  background: rgba(86, 48, 252, 0.3) !important;
+  color: var(--text-color) !important;
+}
+
+:deep(.dp--dark .dp__range_start:hover),
+:deep(.dp--dark .dp__range_end:hover),
+:deep(.dp--dark .dp__active_date:hover) {
+  background: rgba(86, 48, 252, 0.3) !important;
+  color: var(--text-color) !important;
+}
+
+/* Range between dates - subtle styling */
+:deep(.dp__range_between) {
+  background: var(--date-range-color) !important;
+  color: var(--date-text-range-color) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+:deep(.dp--dark .dp__range_between) {
+  background: rgba(86, 48, 252, 0.3) !important;
+  color: var(--text-color) !important;
+}
+
+/* Today's date with border (not selected) */
+:deep(
+  .dp__today:not(.dp__range_start):not(.dp__range_end):not(.dp__active_date)
+) {
+  background: var(--primary-color) !important;
+  color: #fff !important;
+}
+
+/* Hover state for non-selected dates */
+:deep(.dp__cell_inner:hover) {
+  background: var(--primary-color) !important;
+  color: #fff !important;
+}
+
+:deep(.dp--dark .dp__cell_inner:hover) {
+  background: rgba(30, 58, 138, 0.2) !important;
+}
+
+/* Month/Year navigation buttons */
+:deep(.dp__btn) {
+  color: var(--text-color) !important;
+}
+
+:deep(.dp__inner_nav:hover) {
+  background: transparent !important;
+  color: var(--text-color) !important;
+  border-radius: 3px !important;
+}
+
+:deep(.dp__btn:hover) {
+  background: var(--date-button-color) !important;
+  color: var(--text-color) !important;
+  border-radius: 3px !important;
+}
+
+:deep(.dp--dark .dp__btn:hover) {
+  background: rgba(30, 58, 138, 0.2) !important;
 }
 </style>

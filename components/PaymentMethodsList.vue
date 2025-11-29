@@ -14,6 +14,8 @@ import {
 } from "lucide-vue-next";
 import type { PaymentMethod } from "~/client";
 
+import ActionDropdown from "~/components/common/ActionDropdown.vue";
+
 const props = defineProps<{
   modelValue: PaymentMethod[];
   loading: boolean;
@@ -28,14 +30,26 @@ const emit = defineEmits<{
 }>();
 
 const openDropdownId = ref<string | null>(null);
+const elevatedDropdownId = ref<string | null>(null);
 const drag = ref(false);
 
 const toggleDropdown = (pmId: string) => {
-  openDropdownId.value = openDropdownId.value === pmId ? null : pmId;
+  if (openDropdownId.value === pmId) {
+    closeDropdown();
+  } else {
+    elevatedDropdownId.value = pmId;
+    openDropdownId.value = pmId;
+  }
 };
 
 const closeDropdown = () => {
   openDropdownId.value = null;
+};
+
+const onDropdownAfterLeave = () => {
+  if (!openDropdownId.value) {
+    elevatedDropdownId.value = null;
+  }
 };
 
 onMounted(() => {
@@ -92,8 +106,8 @@ const localMethods = computed({
         >
           <div v-for="(pm, index) in localMethods" :key="pm.id" role="listitem">
             <div
-              class="payment-method-card box-shadow-card relative flex p-4 transition-all hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0_var(--shadow-color-hover)]"
-              :class="{ 'dropdown-open': openDropdownId === pm.id }"
+              class="payment-method-card box-shadow-card relative flex p-4 transition-all hover:translate-x-px hover:translate-y-px hover:shadow-[2px_2px_0_var(--shadow-color-hover)] z-0"
+              :class="{ 'dropdown-open': elevatedDropdownId === pm.id }"
             >
               <div class="flex items-center flex-1 min-w-0">
                 <div
@@ -124,17 +138,20 @@ const localMethods = computed({
                   Default
                 </span>
                 <div class="relative">
-                  <button
-                    class="p-1 rounded-full hover:bg-gray-300/50 dark:hover:bg-gray-700/50"
-                    @click.stop="toggleDropdown(pm.id)"
+                  <ActionDropdown
+                    :is-open="openDropdownId === pm.id"
+                    @toggle="toggleDropdown(pm.id)"
+                    @close="closeDropdown"
+                    @after-leave="onDropdownAfterLeave"
                   >
-                    <MoreVertical class="h-5 w-5" />
-                  </button>
-                  <div
-                    v-if="openDropdownId === pm.id"
-                    class="absolute right-0 mt-2 w-48 bg-(--bg-color) border border-(--text-color) rounded-lg shadow-[2px_2px_0_var(--text-color)] z-50"
-                    @click.stop
-                  >
+                    <template #trigger>
+                      <button
+                        class="p-1 rounded-full hover:bg-gray-300/50 dark:hover:bg-gray-700/50"
+                      >
+                        <MoreVertical class="h-5 w-5" />
+                      </button>
+                    </template>
+
                     <ul>
                       <li>
                         <button
@@ -203,7 +220,7 @@ const localMethods = computed({
                         </button>
                       </li>
                     </ul>
-                  </div>
+                  </ActionDropdown>
                 </div>
               </div>
             </div>

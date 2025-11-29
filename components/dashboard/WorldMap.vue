@@ -13,6 +13,11 @@ const props = defineProps<{
 const mapContainer = ref<HTMLElement | null>(null);
 let map: any = null;
 
+// Track zoom level and pan position to preserve across reinitialization
+const currentScale = ref<number>(1);
+const currentTransX = ref<number>(0);
+const currentTransY = ref<number>(0);
+
 const mapData = computed(() => {
   const data: Record<string, number> = {};
   props.data.forEach((item) => {
@@ -27,8 +32,17 @@ const mapData = computed(() => {
 const initMap = () => {
   if (!mapContainer.value) return;
 
-  // Clean up existing map
+  // Store current viewport state before destroying
   if (map) {
+    currentScale.value = map.getScale();
+    // Store the current transform state
+    if (map.mapData && map.mapData.scale) {
+      currentScale.value = map.mapData.scale;
+    }
+    if (map.mapData && map.mapData.transX !== undefined) {
+      currentTransX.value = map.mapData.transX;
+      currentTransY.value = map.mapData.transY;
+    }
     map.destroy();
     map = null;
   }
@@ -79,6 +93,28 @@ const initMap = () => {
           <div class="text-xs">Visits: ${count}</div>
           `,
           true // Enable HTML
+        );
+      }
+    },
+    // Track viewport changes (zoom and pan)
+    onViewportChange(scale: number, transX: number, transY: number) {
+      currentScale.value = scale;
+      currentTransX.value = transX;
+      currentTransY.value = transY;
+    },
+    // Restore zoom level after map loads
+    onLoaded(map: any) {
+      if (
+        currentScale.value !== 1 ||
+        currentTransX.value !== 0 ||
+        currentTransY.value !== 0
+      ) {
+        // Restore the previous viewport state
+        map.setScale(
+          currentScale.value,
+          currentTransX.value,
+          currentTransY.value,
+          false
         );
       }
     },

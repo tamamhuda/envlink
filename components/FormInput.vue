@@ -27,7 +27,6 @@
         :placeholder="placeholder"
         :disabled="disabled"
         :required="required"
-       
         class="text-input disabled:cursor-not-allowed"
         :class="[icon ? 'pl-10' : 'pl-4', isPassword ? 'pr-10' : 'pr-4']"
         @input="
@@ -63,7 +62,7 @@ defineOptions({
 
 interface Props {
   id: string;
-  label: string;
+  label?: string;
   type?: string;
   modelValue?: string | null;
   placeholder?: string;
@@ -75,6 +74,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  label: undefined,
   type: "text",
   placeholder: "",
   required: false,

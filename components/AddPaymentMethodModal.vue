@@ -16,6 +16,8 @@ import {
 import { useNuxtApp } from "#app";
 import { useAuthStore, usePaymentMethodApi } from "#imports";
 import type { BillingAddress, PaymentMethod } from "~/client";
+import FormInput from "~/components/FormInput.vue";
+import ActionDropdown from "~/components/common/ActionDropdown.vue";
 
 const xendit = useNuxtApp().$config.public.xendit;
 const paymentMethod = usePaymentMethodApi();
@@ -107,12 +109,12 @@ watch(
         isDefault.value = false;
       }
     }
-  },
+  }
 );
 
 const selectedAddress = computed(() => {
   return props.billingAddresses.find(
-    (a) => a.id === props.selectedBillingAddressId,
+    (a) => a.id === props.selectedBillingAddressId
   );
 });
 
@@ -143,7 +145,7 @@ const createPaymentMethod = async () => {
 
   const maskedCardNumber = cardNumber.replace(
     /(\d{6})\d+(\d{4})/,
-    "$1XXXXXX$2",
+    "$1XXXXXX$2"
   );
 
   try {
@@ -265,12 +267,12 @@ const goToAddAddress = () => {
 <template>
   <div
     v-if="isOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-(--overlay-color)/50"
     @click.self="closeModal"
   >
-    <div class="box-inner-card max-w-lg p-8">
+    <div class="box-modal p-0 max-w-lg">
       <button
-        class="absolute top-4 right-4 text-(--text-color) opacity-70 hover:opacity-100"
+        class="absolute top-4 right-4 text-(--text-color) opacity-70 hover:opacity-100 transition-opacity z-10"
         @click="closeModal"
       >
         <X class="w-6 h-6" />
@@ -279,21 +281,30 @@ const goToAddAddress = () => {
       <!-- Success View -->
       <div
         v-if="isSuccess && savedPaymentMethod"
-        class="max-h-[80vh] overflow-auto text-center"
+        class="max-h-[80vh] overflow-auto text-center flex flex-col gap-6"
       >
-        <div class="flex justify-center mb-4 pt-5">
-          <CheckCircle class="w-16 h-16 text-green-500" />
+        <div class="flex justify-center pt-2">
+          <div
+            class="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center"
+          >
+            <CheckCircle class="w-10 h-10 text-green-600 dark:text-green-400" />
+          </div>
         </div>
-        <h3 class="text-lg font-semibold leading-6 mb-2">
-          Payment Method Added
-        </h3>
-        <p class="text-sm text-(--text-color)/80 mb-6">
-          Your new payment method has been added successfully.
-        </p>
+        <div>
+          <h3 class="text-xl font-bold mb-2">Payment Method Added</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">
+            Your new payment method has been added successfully.
+          </p>
+        </div>
+
         <div
-          class="text-left p-5 border border-(--text-color) rounded-lg shadow-[2px_2px_0_var(--text-color)] mb-8 bg-gray-100 dark:bg-gray-800/30"
+          class="text-left p-5 border border-(--border-color) rounded-lg bg-gray-50 dark:bg-gray-800/30"
         >
-          <div class="font-semibold text-base border-b pb-3">Card Details</div>
+          <div
+            class="font-semibold text-base border-b border-(--border-color) pb-3"
+          >
+            Card Details
+          </div>
           <div class="text-sm space-y-4 mt-4">
             <div class="flex justify-between">
               <span class="font-medium opacity-80">Card Holder:</span>
@@ -309,163 +320,145 @@ const goToAddAddress = () => {
             </div>
           </div>
         </div>
-        <button
-          class="w-full inline-flex items-center justify-center gap-2 rounded-lg border-l border-t border-white px-4 py-3 bg-blue-700/80 text-white text-base font-semibold shadow-[inset_-3px_-3px_0_var(--text-color),inset_-1px_-1px_0_#0b0d40] hover:translate-x-[2px] hover:translate-y-[2px] active:scale-95 transition-all"
-          @click="closeModal"
-        >
+        <button class="button-box w-full justify-center" @click="closeModal">
           Done
         </button>
       </div>
 
       <!-- Payment Method Form -->
-      <div v-else class="max-h-[80vh] px-2 overflow-auto">
-        <h3 class="text-lg font-semibold leading-6 mb-6">
-          {{ isEditMode ? "Edit" : "Add New" }} Payment Method
-        </h3>
+      <div
+        v-else
+        class="max-h-[80vh] overflow-auto flex flex-col gap-6 p-8 mb-2"
+      >
+        <div>
+          <h3 class="text-xl font-bold">
+            {{ isEditMode ? "Edit" : "Add New" }} Payment Method
+          </h3>
+        </div>
+
         <form class="space-y-4" @submit.prevent="handleSubmit">
           <!-- Card Number -->
-          <div class="relative group">
-            <label for="card_number" class="sr-only">Card Number</label>
-            <CreditCard
-              class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 opacity-50 transition-opacity group-focus-within:opacity-100"
-            />
-            <input
-              id="card_number"
-              v-model="newCard.card_number"
-              type="text"
-              required
-              :disabled="isEditMode"
-              class="w-full pl-10 pr-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder="Card Number"
-            />
-          </div>
+          <FormInput
+            id="card_number"
+            v-model="newCard.card_number"
+            label="Card Number"
+            placeholder="Card Number"
+            required
+            :disabled="isEditMode"
+            :icon="CreditCard"
+          />
 
           <div class="flex gap-4">
             <!-- Expiry Date -->
             <div class="flex-1">
-              <label for="expiry_date_month" class="sr-only">Expiry Date</label>
+              <label
+                class="block text-sm font-medium text-(--text-color) opacity-90 mb-1.5"
+              >
+                Expiry Date
+              </label>
               <div class="flex gap-2">
-                <input
+                <FormInput
                   id="expiry_date_month"
                   v-model="newCard.expiry_month"
-                  type="text"
+                  placeholder="MM"
                   required
                   :disabled="isEditMode"
-                  class="w-full px-3 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="MM"
+                  class="w-full"
                 />
-                <input
+                <FormInput
                   id="expiry_date_year"
                   v-model="newCard.expiry_year"
-                  type="text"
+                  placeholder="YYYY"
                   required
                   :disabled="isEditMode"
-                  class="w-full px-3 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
-                  placeholder="YYYY"
+                  class="w-full"
                 />
               </div>
             </div>
             <!-- CVC -->
-            <div class="relative group w-1/3">
-              <label for="cvc" class="sr-only">CVC</label>
-              <Lock
-                class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 opacity-50 transition-opacity group-focus-within:opacity-100"
-              />
-              <input
+            <div class="w-1/3">
+              <FormInput
                 id="cvc"
                 v-model="newCard.cvc"
-                type="text"
+                label="CVC"
+                placeholder="CVC"
                 required
                 :disabled="isEditMode"
-                class="w-full pl-10 pr-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="CVC"
+                :icon="Lock"
               />
             </div>
           </div>
 
           <!-- Card Holder Name -->
-          <div class="relative group">
-            <label for="card_holder_name" class="sr-only"
-              >Card Holder Name</label
-            >
-            <User
-              class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 opacity-50 transition-opacity group-focus-within:opacity-100"
-            />
-            <input
-              id="card_holder_name"
-              v-model="newCard.card_holder_name"
-              type="text"
-              required
-              :disabled="isEditMode"
-              class="w-full pl-10 pr-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb] disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder="Card Holder Name"
-            />
-          </div>
+          <FormInput
+            id="card_holder_name"
+            v-model="newCard.card_holder_name"
+            label="Card Holder Name"
+            placeholder="Card Holder Name"
+            required
+            :disabled="isEditMode"
+            :icon="User"
+          />
 
           <!-- Custom Name -->
-          <div class="relative group">
-            <label for="custom_name" class="sr-only"
-              >Custom Name (Optional)</label
-            >
-            <Pencil
-              class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 opacity-50 transition-opacity group-focus-within:opacity-100"
-            />
-            <input
-              id="custom_name"
-              v-model="newCard.custom_name"
-              type="text"
-              class="w-full pl-10 pr-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb]"
-              placeholder="Custom Name (e.g. Personal Card)"
-            />
-          </div>
+          <FormInput
+            id="custom_name"
+            v-model="newCard.custom_name"
+            label="Custom Name (Optional)"
+            placeholder="Custom Name (e.g. Personal Card)"
+            :icon="Pencil"
+          />
 
           <!-- Currency -->
-          <div v-if="!isEditMode" class="relative group">
-            <label for="currency" class="sr-only">Currency</label>
-            <DollarSign
-              class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 opacity-50"
-            />
-            <input
-              id="currency"
-              type="text"
-              value="IDR"
-              disabled
-              class="w-full pl-10 pr-4 py-3 bg-gray-100 dark:bg-gray-700/30 border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)]"
-              placeholder="Currency"
-            />
-          </div>
+          <FormInput
+            v-if="!isEditMode"
+            id="currency"
+            model-value="IDR"
+            label="Currency"
+            placeholder="Currency"
+            disabled
+            :icon="DollarSign"
+            class="bg-gray-100 dark:bg-gray-800/30"
+          />
 
           <!-- Billing Address Dropdown -->
-          <div v-if="!isEditMode" class="pt-4">
-            <label class="text-sm font-medium mb-2 block"
-              >Billing Address</label
+          <div v-if="!isEditMode" class="pt-2">
+            <label
+              class="block text-sm font-medium text-(--text-color) opacity-90 mb-1.5"
             >
-            <div class="relative">
-              <button
-                class="w-full flex items-center justify-between text-left px-4 py-3 bg-transparent border border-[var(--text-color)] rounded-lg focus:outline-none shadow-[2px_2px_0_var(--text-color)] focus:shadow-[2px_2px_0_#2563eb]"
-                type="button"
-                @click="isDropdownOpen = !isDropdownOpen"
-              >
-                <span v-if="selectedAddress">
-                  {{ selectedAddress.firstName }}
-                  {{ selectedAddress.lastName }} -
-                  {{ selectedAddress.address }}, {{ selectedAddress.city }}
-                </span>
-                <span v-else class="opacity-70">Select an address</span>
-                <ChevronDown
-                  class="w-5 h-5 transition-transform"
-                  :class="{ 'rotate-180': isDropdownOpen }"
-                />
-              </button>
-              <div
-                v-if="isDropdownOpen"
-                class="absolute z-10 mt-2 w-full bg-[var(--bg-color)] border border-[var(--text-color)] rounded-lg shadow-[2px_2px_0_var(--text-color)] overflow-hidden"
-              >
+              Billing Address
+            </label>
+            <ActionDropdown
+              :is-open="isDropdownOpen"
+              full-width
+              dropdown-class="w-full"
+              @toggle="isDropdownOpen = !isDropdownOpen"
+              @close="isDropdownOpen = false"
+            >
+              <template #trigger>
+                <button
+                  class="w-full flex items-center justify-between text-left px-4 py-3 bg-transparent border border-(--border-color) rounded-lg focus:outline-none hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  type="button"
+                >
+                  <span v-if="selectedAddress" class="truncate mr-2">
+                    {{ selectedAddress.firstName }}
+                    {{ selectedAddress.lastName }} -
+                    {{ selectedAddress.address }}, {{ selectedAddress.city }}
+                  </span>
+                  <span v-else class="opacity-70">Select an address</span>
+                  <ChevronDown
+                    class="w-5 h-5 transition-transform shrink-0"
+                    :class="{ 'rotate-180': isDropdownOpen }"
+                  />
+                </button>
+              </template>
+
+              <div class="max-h-60 overflow-y-auto">
                 <ul>
                   <li
                     v-for="address in billingAddresses"
                     :key="address.id"
-                    class="px-4 py-2 cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-800/50"
+                    class="px-4 py-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border-b border-(--border-color) last:border-0"
                     @click="selectAddress(address.id)"
                   >
                     {{ address.firstName }} {{ address.lastName }} -
@@ -473,7 +466,7 @@ const goToAddAddress = () => {
                   </li>
                   <li>
                     <button
-                      class="w-full text-left px-4 py-3 flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:bg-gray-200 dark:hover:bg-gray-800/50"
+                      class="w-full text-left px-4 py-3 flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                       type="button"
                       @click="goToAddAddress"
                     >
@@ -483,16 +476,16 @@ const goToAddAddress = () => {
                   </li>
                 </ul>
               </div>
-            </div>
+            </ActionDropdown>
           </div>
 
           <!-- Set as default checkbox -->
-          <div class="flex items-center pt-5">
+          <div class="flex items-center pt-2">
             <input
               id="default-checkbox"
               v-model="isDefault"
               type="checkbox"
-              class="w-4 h-4 rounded bg-transparent border-(--text-color) text-blue-600 focus:ring-blue-500"
+              class="w-4 h-4 rounded bg-transparent border-(--border-color) text-blue-600 focus:ring-blue-500"
             />
             <label
               for="default-checkbox"
@@ -501,7 +494,7 @@ const goToAddAddress = () => {
             >
           </div>
 
-          <div class="min-h-10">
+          <div class="min-h-6">
             <div
               v-if="errorMessage"
               class="text-red-500 text-sm text-center p-2 bg-red-500/10 rounded-lg"
@@ -510,9 +503,11 @@ const goToAddAddress = () => {
             </div>
           </div>
 
-          <div class="flex justify-end gap-4 pb-2 pr-2">
+          <div
+            class="flex justify-end gap-3 pt-2 border-t border-(--border-color)"
+          >
             <button
-              class="button-box-verbose py-3 hover:translate-x-0.5 hover:translate-y-0.5"
+              class="button-box verbose"
               type="button"
               @click="closeModal"
             >
@@ -521,7 +516,7 @@ const goToAddAddress = () => {
             <button
               type="submit"
               :disabled="isLoading"
-              class="button-box py-3 hover:translate-x-0.5 hover:translate-y-0.5"
+              class="button-box hover:translate-x-0.5 hover:translate-y-0.5"
             >
               <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />
               <span>{{

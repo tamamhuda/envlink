@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from "#imports";
+import {
+  ref,
+  reactive,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch,
+} from "#imports";
 import {
   Link,
   ChevronDown,
@@ -13,6 +20,7 @@ import {
 import { VueDatePicker } from "@vuepic/vue-datepicker";
 import "@vuepic/vue-datepicker/dist/main.css";
 import type { Url } from "~/client/src/generated/models/Url";
+import ActionDropdown from "~/components/common/ActionDropdown.vue";
 
 const emit = defineEmits<{
   (e: "shortened", url: Url): void;
@@ -34,6 +42,7 @@ const form = reactive({
 
 // Advanced options state
 const showAdvancedOptions = ref(false);
+const isDatePickerOpen = ref(false);
 
 // Channels data
 const channels = ref([
@@ -45,6 +54,9 @@ const channels = ref([
 const multiselectOpen = ref(false);
 const multiselectInput = ref("");
 const multiselectRef = ref<HTMLElement | null>(null);
+
+// Date picker ref for click outside
+const datePickerRef = ref<HTMLElement | null>(null);
 
 // Filtered options based on search
 const filteredChannels = computed(() => {
@@ -92,13 +104,23 @@ const removeChannel = (channelId: string) => {
   form.channel_ids = form.channel_ids.filter((c) => c.id !== channelId);
 };
 
-// Handle click outside
+// Handle click outside for both multiselect and date picker
 const handleClickOutside = (event: MouseEvent) => {
-  if (
-    multiselectRef.value &&
-    !multiselectRef.value.contains(event.target as Node)
-  ) {
+  const target = event.target as Node;
+
+  // Check if click is inside multiselect
+  const clickedMultiselect = multiselectRef.value?.contains(target);
+  // Check if click is inside date picker
+  const clickedDatePicker = datePickerRef.value?.contains(target);
+
+  // Close multiselect if clicked outside OR if clicked on date picker
+  if (multiselectRef.value && !clickedMultiselect) {
     multiselectOpen.value = false;
+  }
+
+  // Close date picker if clicked outside OR if clicked on multiselect
+  if (datePickerRef.value && !clickedDatePicker) {
+    isDatePickerOpen.value = false;
   }
 };
 
@@ -159,6 +181,36 @@ const shortenUrl = () => {
 const toggleAdvancedOptions = () => {
   showAdvancedOptions.value = !showAdvancedOptions.value;
 };
+
+// Watch for date selection to auto-close the picker
+watch(
+  () => form.expires_at,
+  (newValue) => {
+    if (newValue) {
+      isDatePickerOpen.value = false;
+    }
+  }
+);
+
+// Watch date picker state to close multiselect when it opens
+watch(
+  () => isDatePickerOpen.value,
+  (isOpen) => {
+    if (isOpen) {
+      multiselectOpen.value = false;
+    }
+  }
+);
+
+// Watch multiselect state to close date picker when it opens
+watch(
+  () => multiselectOpen.value,
+  (isOpen) => {
+    if (isOpen) {
+      isDatePickerOpen.value = false;
+    }
+  }
+);
 </script>
 
 <template>
@@ -267,33 +319,51 @@ const toggleAdvancedOptions = () => {
               </Transition>
             </div>
 
-            <!-- Expiration Date -->
-            <div class="relative">
-              <Calendar
-                class="absolute left-3 top-3.5 h-5 w-5 opacity-50 pointer-events-none z-20"
-              />
-              <VueDatePicker
-                v-model="form.expires_at"
-                :enable-time-picker="true"
-                :is-24="true"
-                format="yyyy-MM-dd HH:mm"
-                placeholder="Select expiration date (optional)"
-                :clearable="true"
-                auto-apply
-                :teleport="true"
-                :dark="isDarkMode"
-                menu-class-name="dp-custom-menu"
+            <!-- Expiration Date with ActionDropdown -->
+            <div ref="datePickerRef">
+              <ActionDropdown
+                :is-open="isDatePickerOpen"
+                dropdown-class="w-auto"
+                full-width
+                @toggle="isDatePickerOpen = !isDatePickerOpen"
+                @close="isDatePickerOpen = false"
               >
-                <template #dp-input="{ value }">
-                  <input
-                    type="text"
-                    :value="value"
-                    readonly
-                    placeholder="Select expiration date (optional)"
-                    class="text-input"
-                  />
+                <template #trigger>
+                  <button
+                    type="button"
+                    class="w-full flex items-center gap-3 text-left px-4 py-3 bg-transparent border border-(--border-color) rounded-lg hover:bg-gray-50 dark:hover:bg-white/10 transition-colors shadow-[2px_2px_0_var(--shadow-color)]"
+                  >
+                    <Calendar class="h-5 w-5 opacity-50" />
+                    <span class="text-sm">
+                      {{
+                        form.expires_at
+                          ? new Date(form.expires_at).toLocaleString(
+                              undefined,
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              }
+                            )
+                          : "Select expiration date (optional)"
+                      }}
+                    </span>
+                  </button>
                 </template>
-              </VueDatePicker>
+
+                <div class="p-2">
+                  <VueDatePicker
+                    v-model="form.expires_at"
+                    inline
+                    :enable-time-picker="true"
+                    :is-24="true"
+                    :dark="isDarkMode"
+                    auto-apply
+                  />
+                </div>
+              </ActionDropdown>
             </div>
 
             <!-- Custom Multi-Select -->
@@ -301,61 +371,65 @@ const toggleAdvancedOptions = () => {
               <label class="text-sm font-medium block"
                 >Channels (optional)</label
               >
-              <div ref="multiselectRef" class="relative">
-                <!-- Main Input Container -->
-                <Share2
-                  class="absolute left-3 top-3.5 h-5 w-5 opacity-50 pointer-events-none z-20"
-                />
-                <div class="text-input" @click="multiselectOpen = true">
-                  <div class="flex w-full flex-wrap gap-2 items-center">
-                    <!-- Selected Tags -->
-                    <span
-                      v-for="channel in form.channel_ids"
-                      :key="channel.id"
-                      class="inline-flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-2.5 py-1 rounded-full"
-                    >
-                      {{ channel.name }}
-                      <button
-                        type="button"
-                        class="hover:bg-blue-700 rounded-full p-0.5 transition-colors"
-                        @click.stop="removeChannel(channel.id)"
-                      >
-                        <X class="w-3.5 h-3.5" />
-                      </button>
-                    </span>
-
-                    <!-- Input Field -->
-                    <input
-                      v-model="multiselectInput"
-                      type="text"
-                      placeholder="Select or create channels"
-                      class="flex-1 w-full min-w-[120px] bg-transparent border-none outline-none text-sm"
-                      @focus="multiselectOpen = true"
-                    />
-
-                    <!-- Dropdown Arrow -->
-                    <ChevronDown
-                      class="w-5 h-5 opacity-50 transition-transform duration-200"
-                      :class="{ 'rotate-180': multiselectOpen }"
-                    />
-                  </div>
-                </div>
-
-                <!-- Dropdown Menu -->
-                <Transition
-                  enter-active-class="transition-all duration-200 ease-out"
-                  enter-from-class="opacity-0 -translate-y-2"
-                  enter-to-class="opacity-100 translate-y-0"
-                  leave-active-class="transition-all duration-150 ease-in"
-                  leave-from-class="opacity-100 translate-y-0"
-                  leave-to-class="opacity-0 -translate-y-2"
+              <div ref="multiselectRef">
+                <ActionDropdown
+                  :is-open="multiselectOpen"
+                  dropdown-class="w-full"
+                  full-width
+                  @toggle="multiselectOpen = !multiselectOpen"
+                  @close="multiselectOpen = false"
                 >
+                  <template #trigger>
+                    <div class="relative">
+                      <Share2
+                        class="absolute left-3 top-3.5 h-5 w-5 opacity-50 pointer-events-none z-10"
+                      />
+                      <div class="text-input">
+                        <div
+                          class="flex w-full flex-wrap gap-2 items-center"
+                        >
+                          <!-- Selected Tags -->
+                          <span
+                            v-for="channel in form.channel_ids"
+                            :key="channel.id"
+                            class="inline-flex items-center gap-1.5 bg-blue-600 text-white text-sm font-medium px-2.5 py-1 rounded-full"
+                          >
+                            {{ channel.name }}
+                            <button
+                              type="button"
+                              class="hover:bg-blue-700 rounded-full p-0.5 transition-colors"
+                              @click.stop="removeChannel(channel.id)"
+                            >
+                              <X class="w-3.5 h-3.5" />
+                            </button>
+                          </span>
+
+                          <!-- Input Field -->
+                          <input
+                            v-model="multiselectInput"
+                            type="text"
+                            placeholder="Select or create channels"
+                            class="flex-1 w-full min-w-[120px] bg-transparent border-none outline-none text-sm"
+                          />
+
+                          <!-- Dropdown Arrow -->
+                          <ChevronDown
+                            class="w-5 h-5 opacity-50 transition-transform duration-200"
+                            :class="{ 'rotate-180': multiselectOpen }"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </template>
+
                   <div
-                    v-show="multiselectOpen"
-                    class="absolute z-50 w-full mt-2 font-medium box-shadow-card focus-within:outline-none focus-within:ring-offset-0 focus-within:ring-(--text-color) transition-colors overflow-hidden"
+                    class="font-medium bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg transition-colors overflow-hidden"
                   >
                     <!-- Options List -->
-                    <div v-if="filteredChannels.length > 0" class="py-1">
+                    <div
+                      v-if="filteredChannels.length > 0"
+                      class="py-1 max-h-60 overflow-y-auto"
+                    >
                       <button
                         v-for="channel in filteredChannels"
                         :key="channel.id"
@@ -398,7 +472,7 @@ const toggleAdvancedOptions = () => {
                       <span>Create "{{ multiselectInput }}"</span>
                     </button>
                   </div>
-                </Transition>
+                </ActionDropdown>
               </div>
             </div>
           </div>
@@ -417,6 +491,8 @@ const toggleAdvancedOptions = () => {
 </template>
 
 <style scoped>
+@reference "../../assets/css/tailwind.css";
+
 /* Smooth transitions */
 input,
 select,
@@ -424,62 +500,135 @@ button {
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Date Picker Custom Styles */
+/* Date Picker Inline Mode Styles */
 :deep(.dp__main) {
+  font-family: inherit;
+  background-color: var(--bg-color);
+  border-radius: 0.5rem;
+}
+
+:deep(.dp__calendar) {
   font-family: inherit;
 }
 
-:deep(.dp__input_wrap) {
-  width: 100%;
-}
-
-:deep(.dp__input) {
+/* Remove default borders and shadows */
+:deep(.dp__menu) {
   border: none !important;
-  padding: 0 !important;
+  box-shadow: none !important;
   background: transparent !important;
-  color: inherit !important;
 }
 
-:deep(.dp__clear_icon) {
-  right: 12px !important;
+/* Calendar styling */
+:deep(.dp__calendar_header) {
+  color: var(--text-color);
+  font-weight: 600;
 }
 
-:deep(.dp__input_icon) {
-  display: none;
+:deep(.dp__calendar_header_item) {
+  color: var(--text-color);
+  opacity: 0.7;
 }
 
-/* Custom menu style for datepicker */
-:deep(.dp-custom-menu) {
-  /* Custom variables for both light and dark mode */
-  --dp-background-color: var(--bg-color);
-  --dp-text-color: var(--text-color);
-  --dp-font-family: inherit;
-  --dp-border-radius: 0.5rem; /* rounded-lg */
-  --dp-primary-color: #2563eb; /* blue-600 */
-  --dp-primary-text-color: #ffffff;
-  --dp-border-color: transparent; /* The menu itself will have a border */
-
-  /* Custom border and shadow to match project style */
-  border: 2px solid var(--text-color);
-  box-shadow:
-    0 10px 15px -3px rgb(0 0 0 / 0.1),
-    0 4px 6px -4px rgb(0 0 0 / 0.1); /* shadow-lg */
+:deep(.dp__calendar_item) {
+  color: var(--text-color);
 }
 
-/* Light mode specific overrides */
-:deep(.dp-custom-menu:not(.dp--dark)) {
-  --dp-hover-color: #eff6ff; /* blue-50 */
-  --dp-hover-text-color: var(--text-color);
-  --dp-icon-color: var(--text-color);
-  --dp-secondary-color: #a6a6a6;
+/* Time selector styling */
+:deep(.dp__time_input) {
+  color: var(--text-color);
 }
 
-/* Dark mode specific overrides */
-:deep(.dp-custom-menu.dp--dark) {
-  --dp-hover-color: #1e3a8a33; /* approx. blue-900 with 20% opacity */
-  --dp-hover-text-color: var(--text-color);
-  --dp-icon-color: var(--text-color);
-  --dp-secondary-color: #757575;
+:deep(.dp__time_col) {
+  color: var(--text-color);
+}
+
+/* Action row (bottom buttons) */
+:deep(.dp__action_row) {
+  display: none; /* Hide since we're using auto-apply */
+}
+
+/* Selected date styling - match the custom variables */
+:deep(.dp__active_date),
+:deep(.dp__range_start),
+:deep(.dp__range_end) {
+  background: var(--primary-color) !important;
+  color: #fff !important;
+}
+
+/* Dark mode selected dates */
+:deep(.dp--dark .dp__active_date),
+:deep(.dp--dark .dp__range_start),
+:deep(.dp--dark .dp__range_end) {
+  background: var(--date-range-color) !important;
+  border: 1px solid var(--border-color) !important;
+  color: #fff !important;
+}
+
+/* Hover effect on selected dates */
+:deep(.dp__active_date:hover),
+:deep(.dp__range_start:hover),
+:deep(.dp__range_end:hover) {
+  background: rgba(86, 48, 252, 0.3) !important;
+  color: var(--text-color) !important;
+}
+
+:deep(.dp--dark .dp__active_date:hover),
+:deep(.dp--dark .dp__range_start:hover),
+:deep(.dp--dark .dp__range_end:hover) {
+  background: rgba(86, 48, 252, 0.3) !important;
+  color: var(--text-color) !important;
+}
+
+/* Range between dates */
+:deep(.dp__range_between) {
+  background: var(--date-range-color) !important;
+  color: var(--date-text-range-color) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+}
+
+:deep(.dp--dark .dp__range_between) {
+  background: rgba(86, 48, 252, 0.3) !important;
+  color: var(--text-color) !important;
+}
+
+/* Today's date */
+:deep(
+  .dp__today:not(.dp__active_date):not(.dp__range_start):not(.dp__range_end)
+) {
+  background: var(--primary-color) !important;
+  color: #fff !important;
+}
+
+/* Hover state for non-selected dates */
+:deep(.dp__cell_inner:hover) {
+  background: var(--primary-color) !important;
+  color: #fff !important;
+}
+
+:deep(.dp--dark .dp__cell_inner:hover) {
+  background: rgba(30, 58, 138, 0.2) !important;
+}
+
+/* Month/Year navigation buttons */
+:deep(.dp__btn) {
+  color: var(--text-color) !important;
+}
+
+:deep(.dp__inner_nav:hover) {
+  background: transparent !important;
+  color: var(--text-color) !important;
+  border-radius: 3px !important;
+}
+
+:deep(.dp__btn:hover) {
+  background: var(--date-button-color) !important;
+  color: var(--text-color) !important;
+  border-radius: 3px !important;
+}
+
+:deep(.dp--dark .dp__btn:hover) {
+  background: rgba(30, 58, 138, 0.2) !important;
 }
 
 /* Custom scrollbar for dropdown */

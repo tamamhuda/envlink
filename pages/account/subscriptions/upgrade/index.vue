@@ -130,7 +130,10 @@ const handleSelectPlan = (id: string) => {
           <!-- CTA Button -->
           <div class="pt-0 flex items-center justify-center">
             <button
-              :disabled="!plan.upgradable || plan.name === 'Enterprise'"
+              :disabled="
+                (!plan.upgradable && plan.name !== plan.currentPlan) ||
+                plan.name === 'Enterprise'
+              "
               :class="{
                 'button-box':
                   plan.popular || plan.upgradable || plan.name === 'Enterprise',

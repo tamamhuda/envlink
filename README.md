@@ -27,17 +27,6 @@ This directory is for unprocessed assets like stylesheets, fonts, or images. In 
 
 ---
 
-### `/client` - Auto-generated API Client
-
-This directory contains the auto-generated TypeScript client used to communicate with the backend API. The client is generated from an OpenAPI specification, ensuring type safety and consistency between the frontend and backend.
-
-- **`schema/`**: Contains the source OpenAPI specification (`openapi.yaml`) and a normalized version.
-- **`src/client.generated.ts`**: The main generated client file.
-- **`src/generated/`**: Contains all the generated files, including API service classes (`AccountApi.ts`, `SubscriptionsApi.ts`, etc.), models, and documentation.
-- **`src/wrap/`**: Contains wrapper functions and configuration for the generated client, providing a more convenient and reactive API for use within the application.
-
----
-
 ### `/components` - Vue Components
 
 This directory contains reusable Vue components that make up the user interface.

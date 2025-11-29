@@ -26,8 +26,8 @@ logs
 
 GEMINI.md
 
-client/
-client/*
+/client/*
+!/client/.keep
 /client/src/generated
 /client/schema/normalized
 openapitools.json

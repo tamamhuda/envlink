@@ -28,4 +28,6 @@ GEMINI.md
 
 client/
 client/*
+/client/src/generated
+/client/schema/normalized
 openapitools.json

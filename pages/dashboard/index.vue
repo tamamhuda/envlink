@@ -67,6 +67,7 @@ const recentLinks = ref<Url[]>([
     accessCode: "",
     expiresAt: null,
     clickCount: 120,
+    uniqueClicks: 100,
     metadata: {
       title: "Example Domain",
       description:
@@ -93,6 +94,7 @@ const recentLinks = ref<Url[]>([
     accessCode: "secret123",
     expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // 30 days from now
     clickCount: 88,
+    uniqueClicks: 50,
     metadata: {
       title: "Another Example Site",
       description:
@@ -268,7 +270,7 @@ const recentLogs = ref<UrlAnalyticLog[]>([
       @close="showShortenedUrlModal = false"
     />
 
-    <div class="grid grid-cols-1 xl:grid-cols-4 min-w-full gap-8">
+    <div class="grid grid-cols-1 xl:grid-cols-4 min-w-full gap-8 pb-56">
       <!-- Traffic Overview -->
       <div class="col-span-4">
         <TrafficOverview
@@ -323,7 +325,7 @@ const recentLogs = ref<UrlAnalyticLog[]>([
                     analyticsOverview.topCountries?.[0]?.countryCode
                       ? getCountryData(
                           analyticsOverview.topCountries?.[0]
-                            ?.countryCode as TCountryCode,
+                            ?.countryCode as TCountryCode
                         ).name || "No Data"
                       : "No Data"
                   }}
